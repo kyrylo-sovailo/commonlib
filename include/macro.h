@@ -42,6 +42,9 @@
 #ifndef __RELATIVE_FILE__
     #define __RELATIVE_FILE__ __FILE__
 #endif
+#ifndef __BASENAME_FILE__
+    #define __BASENAME_FILE__ __FILE__
+#endif
 #define __STRING_LINE__ STRINGIZE(__LINE__)
 
 #endif

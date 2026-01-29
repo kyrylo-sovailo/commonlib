@@ -8,21 +8,21 @@
 #define ERROR_INCLUDE_EXPRESSION /* Include boolean expression in the trace */
 
 #ifdef ERROR_EMBED_ARGUMENTS
-    #define ERROR_FORMAT() __RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Error"
-    #define ERROR_FORMAT_F(FORMAT) __RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Message: " FORMAT
+    #define ERROR_FORMAT() __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Error"
+    #define ERROR_FORMAT_F(FORMAT) __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Message: " FORMAT
     #ifdef ERROR_INCLUDE_EXPRESSION
-        #define ERROR_FORMAT_E(EXPRESSION) __RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed"
-        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) __RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed. Message: " FORMAT
+        #define ERROR_FORMAT_E(EXPRESSION) __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed"
+        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed. Message: " FORMAT
     #else
         #define ERROR_FORMAT_E(EXPRESSION) ERROR_FORMAT()
         #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) ERROR_FORMAT_F(FORMAT)
     #endif
 #else
-    #define ERROR_FORMAT() "%s:%d: Error", __RELATIVE_FILE__, __LINE__
-    #define ERROR_FORMAT_F(FORMAT) "%s:%d: Message: " FORMAT, __RELATIVE_FILE__, __LINE__
+    #define ERROR_FORMAT() "%s:%d: Error", __BASENAME_FILE__, __LINE__
+    #define ERROR_FORMAT_F(FORMAT) "%s:%d: Message: " FORMAT, __BASENAME_FILE__, __LINE__
     #ifdef ERROR_INCLUDE_EXPRESSION
-        #define ERROR_FORMAT_E(EXPRESSION) "%s:%d: Condition `%s' failed", __RELATIVE_FILE__, __LINE__, EXPRESSION
-        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) "%s:%d: Condition `%s' failed. Message: " FORMAT, __RELATIVE_FILE__, __LINE__, EXPRESSION
+        #define ERROR_FORMAT_E(EXPRESSION) "%s:%d: Condition `%s' failed", __BASENAME_FILE__, __LINE__, EXPRESSION
+        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) "%s:%d: Condition `%s' failed. Message: " FORMAT, __BASENAME_FILE__, __LINE__, EXPRESSION
     #else
         #define ERROR_FORMAT_E(EXPRESSION) ERROR_FORMAT()
         #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) ERROR_FORMAT_F(FORMAT)
