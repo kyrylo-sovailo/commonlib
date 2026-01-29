@@ -1,0 +1,49 @@
+#include "../include/error.h"
+#include "../include/output.h"
+#include "../include/path.h"
+
+ERROR_TYPE test1(void) NODISCARD;
+ERROR_TYPE test2(void) NODISCARD;
+ERROR_TYPE test3(int argc, char **argv) NODISCARD;
+
+ERROR_TYPE test1(void)
+{
+    RET0("Hello error handling");
+}
+
+ERROR_TYPE test2(void)
+{
+    PRET(test1());
+}
+
+ERROR_TYPE test3(int argc, char **argv)
+{
+    CRET(argc > 0);
+    CRET(argv[0] != NULL);
+    ERET2(path_set_application(&g_application, argv[0]), "argc = %d, argv[0] = %s", argc, argv[0]);
+    PRET(test2());
+}
+
+int main(int argc, char **argv)
+{
+    int code = 0;
+    #if defined(ERROR_DIE)
+        test3(argc, argv);
+    #elif defined(ERROR_PRINT)
+        bool success = test3(argc, argv);
+        if (!success)
+        {
+            output_print("Error!\n");
+            code = 1;
+        }
+    #else
+        struct Error *error = test3(argc, argv);
+        if (error != OK)
+        {
+            error_print(error);
+            code = error_get_exit_code(error);
+            error_finalize(error);
+        }
+    #endif
+    return code;
+}

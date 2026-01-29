@@ -8,7 +8,7 @@
 extern struct CharBuffer g_application;
 
 /* Set path to application's path */
-ERROR_TYPE path_set_application(struct CharBuffer *application, int argc, char **argv) NODISCARD;
+ERROR_TYPE path_set_application(struct CharBuffer *application, const char *argv0) NODISCARD;
 
 /* Set path to parent directory */
 ERROR_TYPE path_up(struct CharBuffer *path, size_t count) NODISCARD;

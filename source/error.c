@@ -17,8 +17,9 @@ void error_print_die(const char *format, ...)
 {
     va_list va;
     va_start(va, format);
-    output_print(format, va);
+    output_vprint(format, va);
     va_end(va);
+    output_print("\n");
     error_print_date();
     exit(1); /*TODO: get meaningful code*/
 }
@@ -31,8 +32,9 @@ void error_print(const char *format, ...)
 {
     va_list va;
     va_start(va, format);
-    output_print(format, va);
+    output_vprint(format, va);
     va_end(va);
+    output_print("\n");
 }
 
 #endif /* #ifdef ERROR_PRINT */
@@ -76,7 +78,7 @@ struct Error *error_allocate_append(struct Error *error, const char *format, ...
         va_list va;
         memset(new_error, 0, sizeof(*new_error));
         va_start(va, format);
-        if (string_vprintf_end_internal(&error->message, true, format, va)) {}
+        if (string_vprintf_end_internal(&new_error->message, true, format, va)) {}
         va_end(va);
 
         /* Append */
@@ -170,13 +172,14 @@ void error_print(const struct Error *error)
         output_print("%s\n", (error_i == PANIC) ? "ERROR PANIC" : ((error_i->message.p != NULL) ? error_i->message.p : "ERROR NULL"));
 
         /* Print traceback */
+        output_print("Traceback (most recent call last):\n");
         error_number = 0;
         error_i = error;
         while (true)
         {
             error_number++;
             if (error_i == OK) break;
-            output_print("%s\n", (error_i == PANIC) ? "ERROR PANIC" : ((error_i->message.p != NULL) ? error_i->message.p : "ERROR NULL"));
+            output_print("%d. %s\n", error_number, (error_i == PANIC) ? "ERROR PANIC" : ((error_i->message.p != NULL) ? error_i->message.p : "ERROR NULL"));
             if (error_i == PANIC) break;
             error_i = error_i->next;
         }

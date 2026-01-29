@@ -5,7 +5,7 @@
 #ifndef ERROR_DIE
     #ifndef ERROR_PRINT
         #ifndef ERROR_TRACE
-            #define ERROR_PRINT
+            #define ERROR_TRACE
         #endif
     #endif
 #endif

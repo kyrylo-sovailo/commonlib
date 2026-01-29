@@ -13,6 +13,7 @@ set(SOURCES
 source/error.c
 source/generic_buffer_implementation.c
 source/generic_hash_map_implementation.c
+source/main.c
 source/output.c
 source/path.c
 source/string.c)
@@ -46,7 +47,7 @@ foreach(STANDARD IN ITEMS c89 c99)
         string(SUBSTRING "${STYLE}" 6 1 STYLE_SUFFIX)
         string(TOLOWER "${STYLE_SUFFIX}" STYLE_SUFFIX)
         set(TARGET common_${STANDARD}${STYLE_SUFFIX})
-        add_library_relative(${TARGET} STATIC ${SOURCES})
+        add_executable_relative(${TARGET} ${SOURCES})
         target_compile_options(${TARGET} PRIVATE -ansi -std=${STANDARD})
         target_compile_definitions(${TARGET} PRIVATE ${STYLE})
     endforeach()

@@ -388,9 +388,9 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
-            if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-            else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-            else printed = printf(end, format_copy, value);
+            if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+            else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+            else printed = sprintf(end, format_copy, value);
         }
         else if (specifier == 's' && length == LENGTH_NONE)
         {
@@ -407,9 +407,9 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
-            if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-            else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-            else printed = printf(end, format_copy, value);
+            if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+            else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+            else printed = sprintf(end, format_copy, value);
         }
         else if ((specifier == 'd' || specifier == 'i' || specifier == 'o' || specifier == 'x' || specifier == 'X' || specifier == 'u')
             && (length != LENGTH_LONG_DOUBLE))
@@ -429,47 +429,47 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             if (length == LENGTH_LONG)
             {
                 const long value = va_arg(va, long);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
             #ifdef ENABLE_LONG_LONG
             else if (length == LENGTH_LONG_LONG)
             {
                 const long long value = va_arg(va, long long);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
             #endif
             else if (length == LENGTH_MAX)
             {
                 const intmax_t value = va_arg(va, intmax_t);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
             else if (length == LENGTH_SIZE)
             {
                 const size_t value = va_arg(va, size_t);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
             else if (length == LENGTH_PTRDIFF)
             {
                 const ptrdiff_t value = va_arg(va, ptrdiff_t);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
             else
             {
                 /* shorts and short shorts also end up here*/
                 const int value = va_arg(va, int);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
         }
         else if ((specifier == 'f' || specifier == 'F' || specifier == 'e' || specifier == 'E' || specifier == 'g' || specifier == 'G')
@@ -495,17 +495,17 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             if (length == LENGTH_LONG_DOUBLE)
             {
                 const long double value = va_arg(va, long double);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
             else
             #endif
             {
                 const double value = va_arg(va, double);
-                if (width_and_precision_present) printed = printf(end, format_copy, width, precision, value);
-                else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, value);
-                else printed = printf(end, format_copy, value);
+                if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
+                else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, value);
+                else printed = sprintf(end, format_copy, value);
             }
         }
         else if ((specifier == 'n')
@@ -572,9 +572,9 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
-            if (width_and_precision_present) printed = printf(end, format_copy, width, precision, cast_p);
-            else if (width_or_precision_present) printed = printf(end, format_copy, width_or_precision, cast_p);
-            else printed = printf(end, format_copy, cast_p);
+            if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, cast_p);
+            else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, cast_p);
+            else printed = sprintf(end, format_copy, cast_p);
         }
         #if defined(ERROR_DIE)
         else RET();

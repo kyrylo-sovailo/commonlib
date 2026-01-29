@@ -6,15 +6,13 @@
 
 struct CharBuffer g_application = { 0 };
 
-ERROR_TYPE path_set_application(struct CharBuffer *name, int argc, char **argv)
+ERROR_TYPE path_set_application(struct CharBuffer *name, const char *argv0)
 {
     const char *post_slash;
-    CRET(argc >= 1 && argv[0] != NULL);
-    post_slash = strrchr(argv[0], '/');
-    if (post_slash == NULL) post_slash = argv[0]; /* No slashes */
+    post_slash = strrchr(argv0, '/');
+    if (post_slash == NULL) post_slash = argv0; /* No slashes */
     else post_slash++;
     PRET(string_copy_str(name, post_slash));
-    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE path_up(struct CharBuffer *path, size_t count)
