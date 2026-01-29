@@ -234,4 +234,6 @@ void error_finalize(struct Error *error);
 
 #endif /* #ifdef ERROR_TRACE */
 
+void error_print_date(void);
+
 #endif

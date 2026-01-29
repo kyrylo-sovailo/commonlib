@@ -19,6 +19,7 @@ void error_print_die(const char *format, ...)
     va_start(va, format);
     output_print(format, va);
     va_end(va);
+    error_print_date();
     exit(1); /*TODO: get meaningful code*/
 }
 
@@ -157,10 +158,6 @@ void error_print(const struct Error *error)
     {
         const struct Error *error_i;
         unsigned int error_number;
-        time_t global_time;
-        struct tm *p_global_calender, global_calender;
-        struct tm *p_local_calender, local_calender;
-        char calender_buffer[64];
 
         /* Print last error */
         error_i = error;
@@ -179,27 +176,13 @@ void error_print(const struct Error *error)
         {
             error_number++;
             if (error_i == OK) break;
-            output_print("%u. %s\n", error_number, (error_i == PANIC) ? "ERROR PANIC" : calender_buffer);
+            output_print("%s\n", (error_i == PANIC) ? "ERROR PANIC" : ((error_i->message.p != NULL) ? error_i->message.p : "ERROR NULL"));
             if (error_i == PANIC) break;
             error_i = error_i->next;
         }
 
         /* Print time */
-        global_time = time(NULL);
-        p_global_calender = gmtime(&global_time);
-        if (p_global_calender != NULL) global_calender = *p_global_calender;
-        p_local_calender = localtime(&global_time);
-        if (p_local_calender != NULL) local_calender = *p_local_calender;
-        if (p_global_calender != NULL)
-        {
-            strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &global_calender);
-            output_print("%s\n", calender_buffer);
-            if (p_local_calender != NULL)
-            {
-                strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
-                output_print("%s\n", calender_buffer);
-            }
-        }
+        error_print_date();
     }
 
     /* Print trailing newline */
@@ -220,3 +203,28 @@ void error_finalize(struct Error *error)
 }
 
 #endif /* #ifdef ERROR_TRACE */
+
+void error_print_date(void)
+{
+    time_t global_time;
+    struct tm *p_global_calender, global_calender;
+    struct tm *p_local_calender, local_calender;
+    char calender_buffer[64];
+
+    /* Print time */
+    global_time = time(NULL);
+    p_global_calender = gmtime(&global_time);
+    if (p_global_calender != NULL) global_calender = *p_global_calender;
+    p_local_calender = localtime(&global_time);
+    if (p_local_calender != NULL) local_calender = *p_local_calender;
+    if (p_global_calender != NULL)
+    {
+        strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &global_calender);
+        output_print("%s\n", calender_buffer);
+        if (p_local_calender != NULL)
+        {
+            strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
+            output_print("%s\n", calender_buffer);
+        }
+    }
+}

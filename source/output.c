@@ -3,10 +3,17 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifdef ERROR_TRACE
 void output_open()
 {
     /* Nothing to do */
 }
+
+void output_close()
+{
+    fflush(stderr);
+}
+#endif
 
 void output_print(const char *format, ...)
 {
@@ -19,9 +26,4 @@ void output_print(const char *format, ...)
 void output_vprint(const char *format, va_list va)
 {
     vfprintf(stderr, format, va);
-}
-
-void output_close()
-{
-    fflush(stderr);
 }
