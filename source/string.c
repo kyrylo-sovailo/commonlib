@@ -613,7 +613,7 @@ void string_trim(struct CharBuffer *string)
             return;
         }
         c = string->p[beginning_spaces];
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v') break;
+        if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v')) break;
         beginning_spaces++;
     }
     
@@ -621,7 +621,7 @@ void string_trim(struct CharBuffer *string)
     while (true)
     {
         char c = string->p[string->size - ending_spaces - 1];
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v') break;
+        if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v')) break;
         ending_spaces++;
     }
     
