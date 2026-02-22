@@ -14,11 +14,11 @@ struct Entity
 
 //Declare buffer
 //Arguments are: actual type, name to use in structures, name to use in function
-DECLARE_BUFFER(struct Entity, Entity, entity);
+DECLARE_BUFFER(struct Entity, EntityBuffer, entity_);
 
 //Declare buffer function (in header)
-DECLARE_BUFFER_GROW(struct Entity, Entity, entity);
+DECLARE_BUFFER_GROW(struct Entity, EntityBuffer, entity_);
 
 //Implement buffer function (in source file)
-IMPLEMENT_BUFFER_GROW(struct Entity, Entity, entity);
+IMPLEMENT_BUFFER_GROW(struct Entity, EntityBuffer, entity_);
 ```

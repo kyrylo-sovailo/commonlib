@@ -3,8 +3,8 @@
 
 #include "hash_map.h"
 
-#define IMPLEMENT_HASH_MAP_FINALIZE(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER) \
-void FRIENDLY_LOWER ## _hmap_finalize(struct FRIENDLY_UPPER ## HashMap *map) \
+#define IMPLEMENT_HASH_MAP_FINALIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+void FUNCTION_NAME ## finalize(struct STRUCT_NAME *map) \
 { \
     if (sizeof(map->p->p) == 1) generic_hmap_finalize_1(map); \
     else if (sizeof(map->p->p) == 2) generic_hmap_finalize_2(map); \
@@ -12,8 +12,8 @@ void FRIENDLY_LOWER ## _hmap_finalize(struct FRIENDLY_UPPER ## HashMap *map) \
     else if (sizeof(map->p->p) == 8) generic_hmap_finalize_8(map); \
     else generic_hmap_finalize(sizeof(*map->p), map); \
 }
-#define IMPLEMENT_HASH_MAP_READ(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER) \
-bool FRIENDLY_LOWER ## _hmap_read(const struct FRIENDLY_UPPER ## HashMap *map, const char *key, TYPE *data) \
+#define IMPLEMENT_HASH_MAP_READ(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+bool FUNCTION_NAME ## read(const struct STRUCT_NAME *map, const char *key, TYPE *data) \
 { \
     if (sizeof(map->p->p) == 1) return generic_hmap_read_1(map, key, data); \
     else if (sizeof(map->p->p) == 2) return generic_hmap_read_2(map, key, data); \
@@ -21,8 +21,8 @@ bool FRIENDLY_LOWER ## _hmap_read(const struct FRIENDLY_UPPER ## HashMap *map, c
     else if (sizeof(map->p->p) == 8) return generic_hmap_read_8(map, key, data); \
     else return generic_hmap_read(sizeof(*map->p), map, key, data); \
 }
-#define IMPLEMENT_HASH_MAP_ERASE(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER) \
-bool FRIENDLY_LOWER ## _hmap_erase(struct FRIENDLY_UPPER ## HashMap *map, const char *key) \
+#define IMPLEMENT_HASH_MAP_ERASE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+bool FUNCTION_NAME ## erase(struct STRUCT_NAME *map, const char *key) \
 { \
     if (sizeof(map->p->p) == 1) return generic_hmap_erase_1(map, key); \
     else if (sizeof(map->p->p) == 2) return generic_hmap_erase_2(map, key); \
@@ -30,8 +30,8 @@ bool FRIENDLY_LOWER ## _hmap_erase(struct FRIENDLY_UPPER ## HashMap *map, const 
     else if (sizeof(map->p->p) == 8) return generic_hmap_erase_8(map, key); \
     else return generic_hmap_erase(sizeof(*map->p), map, key); \
 }
-#define IMPLEMENT_HASH_MAP_WRITE(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER, SIZE) \
-ERROR_TYPE FRIENDLY_LOWER ## _hmap_write(struct FRIENDLY_UPPER ## HashMap *map, const char *key, TYPE data) \
+#define IMPLEMENT_HASH_MAP_WRITE(TYPE, STRUCT_NAME, FUNCTION_NAME, SIZE) \
+ERROR_TYPE FUNCTION_NAME ## write(struct STRUCT_NAME *map, const char *key, TYPE data) \
 { \
     struct Error *check[(sizeof(map->p->p) == SIZE) ? 1 : -1]; \
     check[0] = generic_hmap_write_ ## SIZE(map, key, (GENERIC_ARGMENT_ ## SIZE)data); \

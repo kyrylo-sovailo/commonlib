@@ -3,13 +3,13 @@
 
 #include "buffer.h"
 
-#define IMPLEMENT_BUFFER_FINALIZE(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER) \
-void FRIENDLY_LOWER ## _buffer_finalize(struct FRIENDLY_UPPER ## Buffer *buffer) \
+#define IMPLEMENT_BUFFER_FINALIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+void FUNCTION_NAME ## finalize(struct STRUCT_NAME *buffer) \
 { \
     generic_buffer_finalize(buffer); \
 }
-#define IMPLEMENT_BUFFER_RESIZE(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER) \
-ERROR_TYPE FRIENDLY_LOWER ## _buffer_resize(struct FRIENDLY_UPPER ## Buffer *buffer, size_t size) \
+#define IMPLEMENT_BUFFER_RESIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+ERROR_TYPE FUNCTION_NAME ## resize(struct STRUCT_NAME *buffer, size_t size) \
 { \
     switch (sizeof(*buffer->p)) \
     { \
@@ -20,8 +20,8 @@ ERROR_TYPE FRIENDLY_LOWER ## _buffer_resize(struct FRIENDLY_UPPER ## Buffer *buf
     default: return generic_buffer_resize_n(sizeof(*buffer->p), buffer, size); \
     } \
 }
-#define IMPLEMENT_BUFFER_APPEND(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER) \
-ERROR_TYPE FRIENDLY_LOWER ## _buffer_append(struct FRIENDLY_UPPER ## Buffer *buffer, const TYPE *data, size_t size) \
+#define IMPLEMENT_BUFFER_APPEND(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+ERROR_TYPE FUNCTION_NAME ## append(struct STRUCT_NAME *buffer, const TYPE *data, size_t size) \
 { \
     switch (sizeof(*buffer->p)) \
     { \
@@ -32,8 +32,8 @@ ERROR_TYPE FRIENDLY_LOWER ## _buffer_append(struct FRIENDLY_UPPER ## Buffer *buf
     default: return generic_buffer_append_n(sizeof(*buffer->p), buffer, data, size); \
     } \
 }
-#define IMPLEMENT_BUFFER_PUSH(TYPE, FRIENDLY_UPPER, FRIENDLY_LOWER, SIZE) \
-ERROR_TYPE FRIENDLY_LOWER ## _buffer_push(struct FRIENDLY_UPPER ## Buffer *buffer, TYPE data) \
+#define IMPLEMENT_BUFFER_PUSH(TYPE, STRUCT_NAME, FUNCTION_NAME, SIZE) \
+ERROR_TYPE FUNCTION_NAME ## push(struct STRUCT_NAME *buffer, TYPE data) \
 { \
     ERROR_TYPE check[(sizeof(*buffer->p) == SIZE && sizeof(data) == SIZE) ? 1 : -1]; \
     check[0] = generic_buffer_push_ ## SIZE(buffer, (GENERIC_ARGMENT_ ## SIZE)data); \

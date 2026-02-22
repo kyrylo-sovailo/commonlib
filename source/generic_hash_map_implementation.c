@@ -10,15 +10,15 @@ struct GenericHashKey
     char *key;
 };
 
-DECLARE_HASH_MAP(GENERIC_ARGMENT_1, Generic1Byte, generic_byte)
-DECLARE_HASH_MAP(GENERIC_ARGMENT_2, Generic2Byte, generic_word)
-DECLARE_HASH_MAP(GENERIC_ARGMENT_4, Generic4Byte, generic_dword)
-DECLARE_HASH_MAP(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_1, GenericByteHMap, generic_byte_hmap_)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_2, GenericWordHMap, generic_word_hmap_)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_4, GenericDWordHMap, generic_dword_hmap_)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_8, GenericQWordHMap, generic_qword_hmap_)
 
-#define IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(FRIENDLY_UPPER) \
+#define IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(STRUCT_NAME) \
 { \
-    struct FRIENDLY_UPPER ## HashMap *cast = (struct FRIENDLY_UPPER ## HashMap*)map; \
-    struct FRIENDLY_UPPER ## HashMapEntry *entry; \
+    struct STRUCT_NAME *cast = (struct STRUCT_NAME*)map; \
+    struct STRUCT_NAME ## Entry *entry; \
     for (entry = cast->p; entry != cast->p + cast->capacity; entry++) \
     { \
         if (entry->key != (void*)0 && entry->key != (void*)-1) free(entry->key); \
@@ -27,9 +27,9 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
     memset(cast, 0, sizeof(*cast)); \
 }
 
-#define IMPLEMENT_GENERIC_HASH_MAP_FIND(FRIENDLY_UPPER) \
+#define IMPLEMENT_GENERIC_HASH_MAP_FIND(STRUCT_NAME) \
 { \
-    const struct FRIENDLY_UPPER ## HashMap *cast = (const struct FRIENDLY_UPPER ## HashMap*)map; \
+    const struct STRUCT_NAME *cast = (const struct STRUCT_NAME*)map; \
     const size_t hash = fnv1a(key); \
     const size_t mask = cast->capacity - 1; \
     size_t position = hash & mask; \
@@ -53,9 +53,9 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
     } \
 }
 
-#define IMPLEMENT_GENERIC_HASH_MAP_ERASE(FRIENDLY_UPPER) \
+#define IMPLEMENT_GENERIC_HASH_MAP_ERASE(STRUCT_NAME) \
 { \
-    struct FRIENDLY_UPPER ## HashMap *cast = (struct FRIENDLY_UPPER ## HashMap*)map; \
+    struct STRUCT_NAME *cast = (struct STRUCT_NAME*)map; \
     size_t hash = fnv1a(key); \
     size_t mask = cast->capacity - 1; \
     size_t position = hash & mask; \
@@ -99,9 +99,9 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
     } \
 }
 
-#define IMPLEMENT_GENERIC_HASH_MAP_INSERT(FRIENDLY_UPPER) \
+#define IMPLEMENT_GENERIC_HASH_MAP_INSERT(STRUCT_NAME) \
 { \
-    struct FRIENDLY_UPPER ## HashMap *cast = (struct FRIENDLY_UPPER ## HashMap*)map; \
+    struct STRUCT_NAME *cast = (struct STRUCT_NAME*)map; \
     if (2 * (cast->size + cast->deleted + 1) > cast->capacity) \
     { \
         /* Rehash */ \
@@ -109,10 +109,10 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
         size_t new_capacity = 1; \
         size_t new_mask; \
         size_t position; \
-        struct FRIENDLY_UPPER ## HashMapEntry *new_p; \
+        struct STRUCT_NAME ## Entry *new_p; \
         while (new_capacity < required_capacity) new_capacity = (new_capacity << 1); \
         new_mask = new_capacity - 1; \
-        new_p = malloc(new_capacity * sizeof(struct FRIENDLY_UPPER ## HashMapEntry)); \
+        new_p = malloc(new_capacity * sizeof(struct STRUCT_NAME ## Entry)); \
         ARET(new_p != NULL); \
         for (position = 0; position < new_capacity; position++) \
         { \
@@ -206,43 +206,43 @@ static size_t fnv1a(const char *key)
 }
 
 void generic_hmap_finalize_1(void *map)
-IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(Generic1Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(GenericByteHMap)
 void generic_hmap_finalize_2(void *map)
-IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(Generic2Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(GenericWordHMap)
 void generic_hmap_finalize_4(void *map)
-IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(Generic4Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(GenericDWordHMap)
 void generic_hmap_finalize_8(void *map)
-IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(Generic8Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(GenericQWordHMap)
 void generic_hmap_finalize_n(void *map, size_t entry_sizeof)
 { (void)map; (void)entry_sizeof; } /*TODO*/
 
 bool generic_hmap_read_1(const void *map, const char *key, void *data)
-IMPLEMENT_GENERIC_HASH_MAP_FIND(Generic1Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FIND(GenericByteHMap)
 bool generic_hmap_read_2(const void *map, const char *key, void *data)
-IMPLEMENT_GENERIC_HASH_MAP_FIND(Generic2Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FIND(GenericWordHMap)
 bool generic_hmap_read_4(const void *map, const char *key, void *data)
-IMPLEMENT_GENERIC_HASH_MAP_FIND(Generic4Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FIND(GenericDWordHMap)
 bool generic_hmap_read_8(const void *map, const char *key, void *data)
-IMPLEMENT_GENERIC_HASH_MAP_FIND(Generic8Byte)
+IMPLEMENT_GENERIC_HASH_MAP_FIND(GenericQWordHMap)
 bool generic_hmap_read_n(const void *map, const char *key, void *data, size_t entry_sizeof)
 { (void)map; (void)key; (void)data; (void)entry_sizeof; return false; } /*TODO*/
 
 bool generic_hmap_erase_1(void *map, const char *key)
-IMPLEMENT_GENERIC_HASH_MAP_ERASE(Generic1Byte)
+IMPLEMENT_GENERIC_HASH_MAP_ERASE(GenericByteHMap)
 bool generic_hmap_erase_2(void *map, const char *key)
-IMPLEMENT_GENERIC_HASH_MAP_ERASE(Generic2Byte)
+IMPLEMENT_GENERIC_HASH_MAP_ERASE(GenericWordHMap)
 bool generic_hmap_erase_4(void *map, const char *key)
-IMPLEMENT_GENERIC_HASH_MAP_ERASE(Generic4Byte)
+IMPLEMENT_GENERIC_HASH_MAP_ERASE(GenericDWordHMap)
 bool generic_hmap_erase_8(void *map, const char *key)
-IMPLEMENT_GENERIC_HASH_MAP_ERASE(Generic8Byte)
+IMPLEMENT_GENERIC_HASH_MAP_ERASE(GenericQWordHMap)
 bool generic_hmap_erase_n(void *map, const char *key, size_t entry_sizeof)
 { (void)map; (void)key; (void)entry_sizeof; return false; } /*TODO*/
 
 ERROR_TYPE generic_hmap_write_1(void *map, const char *key, GENERIC_ARGMENT_1 data)
-IMPLEMENT_GENERIC_HASH_MAP_INSERT(Generic1Byte)
+IMPLEMENT_GENERIC_HASH_MAP_INSERT(GenericByteHMap)
 ERROR_TYPE generic_hmap_write_2(void *map, const char *key, GENERIC_ARGMENT_2 data)
-IMPLEMENT_GENERIC_HASH_MAP_INSERT(Generic2Byte)
+IMPLEMENT_GENERIC_HASH_MAP_INSERT(GenericWordHMap)
 ERROR_TYPE generic_hmap_write_4(void *map, const char *key, GENERIC_ARGMENT_4 data)
-IMPLEMENT_GENERIC_HASH_MAP_INSERT(Generic4Byte)
+IMPLEMENT_GENERIC_HASH_MAP_INSERT(GenericDWordHMap)
 ERROR_TYPE generic_hmap_write_8(void *map, const char *key, GENERIC_ARGMENT_8 data)
-IMPLEMENT_GENERIC_HASH_MAP_INSERT(Generic8Byte)
+IMPLEMENT_GENERIC_HASH_MAP_INSERT(GenericQWordHMap)
