@@ -1,0 +1,1 @@
+ - [X] Add proper trace-like header and footer to print-like handler

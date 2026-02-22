@@ -49,7 +49,7 @@ ERROR_TYPE string_resize(struct CharBuffer *string, size_t size)
         size_t new_capacity = (string->capacity < 2) ? 2 : string->capacity;
         while (size + 1 > new_capacity) new_capacity *= 2;
         new_p = realloc(string->p, new_capacity * sizeof(*string->p));
-        CRET(new_p != NULL);
+        ARET(new_p != NULL);
         string->capacity = new_capacity;
         string->p = new_p;
     }
@@ -66,7 +66,7 @@ ERROR_TYPE string_reserve(struct CharBuffer *string, size_t capacity)
         size_t new_capacity = (string->capacity < 2) ? 2 : string->capacity;
         while (capacity + 1 > new_capacity) new_capacity *= 2;
         new_p = realloc(string->p, new_capacity * sizeof(*string->p));
-        CRET(new_p != NULL);
+        ARET(new_p != NULL);
         string->capacity = new_capacity;
         string->p = new_p;
     }
@@ -75,17 +75,17 @@ ERROR_TYPE string_reserve(struct CharBuffer *string, size_t capacity)
 
 ERROR_TYPE string_copy(struct CharBuffer *string, const struct CharBuffer *other)
 {
-    PRET(string_copy_mem(string, other->p, other->size));
+    WRET(string_copy_mem(string, other->p, other->size));
 }
 
 ERROR_TYPE string_copy_str(struct CharBuffer *string, const char *other)
 {
-    PRET(string_copy_mem(string, other, strlen(other)));
+    WRET(string_copy_mem(string, other, strlen(other)));
 }
 
 ERROR_TYPE string_copy_mem(struct CharBuffer *string, const char *other, size_t other_size)
 {
-    ERET(string_resize(string, other_size));
+    PRET(string_resize(string, other_size));
     memcpy(string->p, other, other_size);
     ERROR_RETURN_OK();
 }
@@ -96,7 +96,7 @@ ERROR_TYPE string_push(struct CharBuffer *string, char other)
     {
         const size_t new_capacity = (string->capacity < 2) ? 2 : (string->capacity * 2);
         char *new_p = realloc(string->p, new_capacity * sizeof(*string->p));
-        CRET(new_p != NULL);
+        ARET(new_p != NULL);
         string->capacity = new_capacity;
         string->p = new_p;
     }
@@ -108,18 +108,18 @@ ERROR_TYPE string_push(struct CharBuffer *string, char other)
 
 ERROR_TYPE string_append(struct CharBuffer *string, const struct CharBuffer *other)
 {
-    PRET(string_append_mem(string, other->p, other->size));
+    WRET(string_append_mem(string, other->p, other->size));
 }
 
 ERROR_TYPE string_append_str(struct CharBuffer *string, const char *other)
 {
-    PRET(string_append_mem(string, other, strlen(other)));
+    WRET(string_append_mem(string, other, strlen(other)));
 }
 
 ERROR_TYPE string_append_mem(struct CharBuffer *string, const char *other, size_t other_size)
 {
     const size_t old_size = string->size;
-    ERET(string_resize(string, string->size + other_size));
+    PRET(string_resize(string, string->size + other_size));
     memcpy(string->p + old_size, other, other_size);
     ERROR_RETURN_OK();
 }
@@ -132,9 +132,9 @@ ERROR_TYPE string_printf(struct CharBuffer *string, const char *format, ...)
     if (string->p != NULL) string->p[0] = '\0';
     va_start(va, format);
     #ifdef ERROR_TRACE
-    ERROR_ASSIGN(string_vprintf_end_internal(string, false, format, va));
+        ERROR_ASSIGN(string_internal_vprintf_end(string, false, format, va));
     #else
-    ERROR_ASSIGN(string_vprintf_end_internal(string, format, va));
+        ERROR_ASSIGN(string_internal_vprintf_end(string, format, va));
     #endif
     va_end(va);
     ERROR_RETURN();
@@ -145,9 +145,9 @@ ERROR_TYPE string_vprintf(struct CharBuffer *string, const char *format, va_list
     string->size = 0;
     if (string->p != NULL) string->p[0] = '\0';
     #ifdef ERROR_TRACE
-    PRET(string_vprintf_end_internal(string, false, format, va));
+        WRET(string_internal_vprintf_end(string, false, format, va));
     #else
-    PRET(string_vprintf_end_internal(string, format, va));
+        WRET(string_internal_vprintf_end(string, format, va));
     #endif
 }
 
@@ -157,9 +157,9 @@ ERROR_TYPE string_printf_end(struct CharBuffer *string, const char *format, ...)
     ERROR_DECLARE();
     va_start(va, format);
     #ifdef ERROR_TRACE
-    ERROR_ASSIGN(string_vprintf_end_internal(string, false, format, va));
+        ERROR_ASSIGN(string_internal_vprintf_end(string, false, format, va));
     #else
-    ERROR_ASSIGN(string_vprintf_end_internal(string, format, va));
+        ERROR_ASSIGN(string_internal_vprintf_end(string, format, va));
     #endif
     va_end(va);
     ERROR_RETURN();
@@ -168,9 +168,9 @@ ERROR_TYPE string_printf_end(struct CharBuffer *string, const char *format, ...)
 ERROR_TYPE string_vprintf_end(struct CharBuffer *string, const char *format, va_list va)
 {
     #ifdef ERROR_TRACE
-    PRET(string_vprintf_end_internal(string, false, format, va));
+        WRET(string_internal_vprintf_end(string, false, format, va));
     #else
-    PRET(string_vprintf_end_internal(string, format, va));
+        WRET(string_internal_vprintf_end(string, format, va));
     #endif
 }
 
@@ -190,7 +190,7 @@ static void string_vprintf_end_internal_reserve(struct CharBuffer *string, size_
         #ifndef ERROR_DIE
             if (new_p == NULL) return false;
         #else
-            CRET(new_p == NULL);
+            ARET(new_p == NULL);
         #endif
         string->capacity = new_capacity;
         string->p = new_p;
@@ -220,9 +220,9 @@ static void string_vprintf_end_internal_compact(struct CharBuffer *string)
 
 /* #define ENABLE_LONG_LONG */
 #ifdef ERROR_TRACE
-ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, bool suppress_errors, const char *format, va_list va)
+ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, bool suppress_errors, const char *format, va_list va)
 #else
-ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *format, va_list va)
+ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *format, va_list va)
 #endif
 {
     /*
@@ -262,7 +262,7 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
         #elif defined(ERROR_PRINT)
             if (!string_vprintf_end_internal_reserve(string, length_without_percent)) { va_end(va); RET(); }
         #else
-            if (!string_vprintf_end_internal_reserve(string, length_without_percent)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+            if (!string_vprintf_end_internal_reserve(string, length_without_percent)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
         #endif
         memcpy(string->p + string->size, format, length_without_percent);
         string->p[string->size + length_without_percent] = '\0';
@@ -283,7 +283,7 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             #elif defined(ERROR_PRINT)
                 if (!string_vprintf_end_internal_reserve(string, 1)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, 1)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+                if (!string_vprintf_end_internal_reserve(string, 1)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             string->p[string->size] = '%';
             string->p[string->size + 1] = '\0';
@@ -385,7 +385,7 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             #elif defined(ERROR_PRINT)
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
@@ -404,7 +404,7 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             #elif defined(ERROR_PRINT)
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
@@ -423,7 +423,7 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             #elif defined(ERROR_PRINT)
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             if (length == LENGTH_LONG)
@@ -488,7 +488,7 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             #elif defined(ERROR_PRINT)
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             #ifdef ENABLE_LONG_LONG
@@ -569,7 +569,7 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
             #elif defined(ERROR_PRINT)
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, cast_p);
@@ -581,15 +581,15 @@ ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *fo
         #elif defined(ERROR_PRINT)
         else { va_end(va); RET(); }
         #else
-        else { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+        else { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
         #endif
 
         #if defined(ERROR_DIE)
-            CRET(printed < 0);
+            ARET(printed < 0);
         #elif defined(ERROR_PRINT)
             if (printed < 0) { va_end(va); RET(); }
         #else
-            if (printed < 0) { va_end(va); return suppress_errors ? PANIC : error_allocate(ERROR_FORMAT()); }
+            if (printed < 0) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
         #endif
         
         string->size += (size_t)printed;
@@ -634,7 +634,7 @@ void string_trim(struct CharBuffer *string)
 
 ERROR_TYPE string_remove(struct CharBuffer *string, size_t begin, size_t size)
 {
-    CRET(begin + size < string->size);
+    ARET(begin + size < string->size);
     memmove(string->p + begin, string->p + begin + size, string->size - begin - size + 1);
     string->size -= size;
     ERROR_RETURN_OK();
@@ -642,12 +642,12 @@ ERROR_TYPE string_remove(struct CharBuffer *string, size_t begin, size_t size)
 
 ERROR_TYPE string_insert(struct CharBuffer *string, size_t begin, const struct CharBuffer *other)
 {
-    PRET(string_insert_mem(string, begin, other->p, other->size));
+    WRET(string_insert_mem(string, begin, other->p, other->size));
 }
 
 ERROR_TYPE string_insert_str(struct CharBuffer *string, size_t begin, const char *other)
 {
-    PRET(string_insert_mem(string, begin, other, strlen(other)));
+    WRET(string_insert_mem(string, begin, other, strlen(other)));
 }
 
 ERROR_TYPE string_insert_mem(struct CharBuffer *string, size_t begin, const char *other, size_t other_size)
@@ -657,7 +657,7 @@ ERROR_TYPE string_insert_mem(struct CharBuffer *string, size_t begin, const char
     {
         const size_t old_size = string->size;
         const size_t new_size = old_size + other_size;
-        ERET(string_resize(string, new_size));
+        PRET(string_resize(string, new_size));
         segment_p = string->p + begin;
         memmove(segment_p + other_size, segment_p, old_size);
     }
@@ -671,18 +671,18 @@ ERROR_TYPE string_insert_mem(struct CharBuffer *string, size_t begin, const char
 
 ERROR_TYPE string_replace(struct CharBuffer *string, size_t begin, size_t size, const struct CharBuffer *other)
 {
-    PRET(string_replace_mem(string, begin, size, other->p, other->size));
+    WRET(string_replace_mem(string, begin, size, other->p, other->size));
 }
 
 ERROR_TYPE string_replace_str(struct CharBuffer *string, size_t begin, size_t size, const char *other)
 {
-    PRET(string_replace_mem(string, begin, size, other, strlen(other)));
+    WRET(string_replace_mem(string, begin, size, other, strlen(other)));
 }
 
 ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t size, const char *other, size_t other_size)
 {
     char *segment_p;
-    CRET(begin + size < string->size);
+    ARET(begin + size < string->size);
     if (other_size != size)
     {
         const size_t old_size = string->size;
@@ -690,7 +690,7 @@ ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t si
         if (other_size > size)
         {
             /* Expanding */
-            ERET(string_resize(string, new_size));
+            PRET(string_resize(string, new_size));
         }
         segment_p = string->p + begin;
         memmove(segment_p + other_size, segment_p + size, old_size - size);

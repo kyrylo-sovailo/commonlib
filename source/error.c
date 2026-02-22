@@ -11,16 +11,44 @@
 #include <string.h>
 #include <time.h>
 
+/* Needed by error_print_date */
+static void error_print_date(void)
+{
+    time_t global_time;
+    struct tm *p_global_calender, global_calender;
+    struct tm *p_local_calender, local_calender;
+    char calender_buffer[64];
+
+    /* Print time */
+    global_time = time(NULL);
+    p_global_calender = gmtime(&global_time);
+    if (p_global_calender != NULL) global_calender = *p_global_calender;
+    p_local_calender = localtime(&global_time);
+    if (p_local_calender != NULL) local_calender = *p_local_calender;
+    if (p_global_calender != NULL)
+    {
+        strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &global_calender);
+        output_print("%s\n", calender_buffer);
+        if (p_local_calender != NULL)
+        {
+            strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
+            output_print("%s\n", calender_buffer);
+        }
+    }
+}
+
 #ifdef ERROR_DIE
 
-void error_print_die(const char *format, ...)
+void error_internal_print_die(const char *format, ...)
 {
     va_list va;
+    output_open();
     va_start(va, format);
     output_vprint(format, va);
     va_end(va);
     output_print("\n");
     error_print_date();
+    output_close();
     exit(1); /*TODO: get meaningful code*/
 }
 
@@ -28,13 +56,37 @@ void error_print_die(const char *format, ...)
 
 #ifdef ERROR_PRINT
 
-void error_print(const char *format, ...)
+static unsigned int error_print_number = 0;
+
+void error_internal_print(const char *format, ...)
 {
     va_list va;
+    if (error_print_number == 0)
+    {
+        /* First error, print header */
+        output_open();
+        output_print("%s:\n", (g_application.p != NULL) ? g_application.p : "APPLICATION NULL");
+        va_start(va, format);
+        output_vprint(format, va);
+        va_end(va);
+        output_print("\n" "Traceback (most recent call first):\n");
+    }
+    error_print_number++;
+    output_print("%d. ", error_print_number);
     va_start(va, format);
     output_vprint(format, va);
     va_end(va);
     output_print("\n");
+
+    /* User is responsible for calling error_print_close() */
+}
+
+void error_print_close(void)
+{
+    error_print_number = 0;
+    error_print_date();
+    output_print("\n");
+    output_close();
 }
 
 #endif /* #ifdef ERROR_PRINT */
@@ -47,7 +99,7 @@ struct Error
     struct Error *next;
 };
 
-struct Error *error_allocate(const char *format, ...)
+struct Error *error_internal_allocate(const char *format, ...)
 {
     /* Create new error buffer */
     struct Error *error = malloc(sizeof(*error));
@@ -57,7 +109,7 @@ struct Error *error_allocate(const char *format, ...)
         va_list va;
         memset(error, 0, sizeof(*error));
         va_start(va, format);
-        if (string_vprintf_end_internal(&error->message, true, format, va)) {}
+        if (string_internal_vprintf_end(&error->message, true, format, va)) {}
         va_end(va);
         return error;
     }
@@ -68,7 +120,7 @@ struct Error *error_allocate(const char *format, ...)
     }
 }
 
-struct Error *error_allocate_append(struct Error *error, const char *format, ...)
+struct Error *error_internal_allocate_append(struct Error *error, const char *format, ...)
 {
     /* Create new error buffer */
     struct Error *new_error = malloc(sizeof(*new_error));
@@ -78,7 +130,7 @@ struct Error *error_allocate_append(struct Error *error, const char *format, ...
         va_list va;
         memset(new_error, 0, sizeof(*new_error));
         va_start(va, format);
-        if (string_vprintf_end_internal(&new_error->message, true, format, va)) {}
+        if (string_internal_vprintf_end(&new_error->message, true, format, va)) {}
         va_end(va);
 
         /* Append */
@@ -206,28 +258,3 @@ void error_finalize(struct Error *error)
 }
 
 #endif /* #ifdef ERROR_TRACE */
-
-void error_print_date(void)
-{
-    time_t global_time;
-    struct tm *p_global_calender, global_calender;
-    struct tm *p_local_calender, local_calender;
-    char calender_buffer[64];
-
-    /* Print time */
-    global_time = time(NULL);
-    p_global_calender = gmtime(&global_time);
-    if (p_global_calender != NULL) global_calender = *p_global_calender;
-    p_local_calender = localtime(&global_time);
-    if (p_local_calender != NULL) local_calender = *p_local_calender;
-    if (p_global_calender != NULL)
-    {
-        strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &global_calender);
-        output_print("%s\n", calender_buffer);
-        if (p_local_calender != NULL)
-        {
-            strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
-            output_print("%s\n", calender_buffer);
-        }
-    }
-}

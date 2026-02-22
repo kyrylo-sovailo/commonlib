@@ -3,7 +3,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#ifdef ERROR_TRACE
 void output_open()
 {
     /* Nothing to do */
@@ -13,7 +12,6 @@ void output_close()
 {
     fflush(stderr);
 }
-#endif
 
 void output_print(const char *format, ...)
 {

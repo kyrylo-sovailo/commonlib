@@ -18,7 +18,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
         size_t new_capacity = (cast->capacity == 0) ? 1 : cast->capacity; \
         while (size > new_capacity) new_capacity <<= 1; \
         new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
-        CRET(new_p != NULL); \
+        ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
         cast->p = new_p; \
     } \
@@ -35,7 +35,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
         size_t new_capacity = (cast->capacity == 0) ? 1 : cast->capacity; \
         while (size > new_capacity) new_capacity <<= 1; \
         new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
-        CRET(new_p != NULL); \
+        ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
         cast->p = new_p; \
     } \
@@ -52,7 +52,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
         size_t new_capacity = (cast->capacity == 0) ? 1 : cast->capacity; \
         while (cast->size + size > new_capacity) new_capacity <<= 1; \
         new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
-        CRET(new_p != NULL); \
+        ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
         cast->p = new_p; \
     } \
@@ -68,7 +68,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
     { \
         const size_t new_capacity = (cast->capacity == 0) ? 1 : (cast->capacity << 1); \
         void *new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
-        CRET(new_p != NULL); \
+        ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
         cast->p = new_p; \
     } \

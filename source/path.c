@@ -12,7 +12,7 @@ ERROR_TYPE path_set_application(struct CharBuffer *name, const char *argv0)
     post_slash = strrchr(argv0, '/');
     if (post_slash == NULL) post_slash = argv0; /* No slashes */
     else post_slash++;
-    PRET(string_copy_str(name, post_slash));
+    WRET(string_copy_str(name, post_slash));
 }
 
 ERROR_TYPE path_up(struct CharBuffer *path, size_t count)
@@ -24,7 +24,7 @@ ERROR_TYPE path_up(struct CharBuffer *path, size_t count)
     nonslash = slash;
     while (nonslash > 0 && path->p[nonslash - 1] != '/') nonslash--;
     
-    CRET1(nonslash != 0, "Could not step back from %s", path->p);
+    ARET1(nonslash != 0, "Could not step back from %s", path->p);
     path->size = nonslash;
     path->p[nonslash] = '\0';
     ERROR_RETURN_OK();
@@ -39,7 +39,7 @@ ERROR_TYPE path_append_str(struct CharBuffer *path, const char *other, bool is_d
     else if (other[0] == '/') /* Other is absolute, copy */
     {
         path->size = 0;
-        PRET(string_append_mem(path, other, (size_t)(other_end - other)));
+        WRET(string_append_mem(path, other, (size_t)(other_end - other)));
     }
     else /* Relative append */
     {
@@ -49,14 +49,14 @@ ERROR_TYPE path_append_str(struct CharBuffer *path, const char *other, bool is_d
             if (slash == NULL) slash = other_end - 1;
             if (other == slash) {}
             else if (other + 1 == slash && other[0] == '.') {}
-            else if (other + 2 == slash && other[0] == '.' && other[1] == '.') PRET(path_up(path, 1))
-            else PRET(string_append_mem(path, other, (size_t)(slash - other + 1)));
+            else if (other + 2 == slash && other[0] == '.' && other[1] == '.') WRET(path_up(path, 1))
+            else WRET(string_append_mem(path, other, (size_t)(slash - other + 1)));
             other = slash + 1;
         }
     }
     if (is_directory && (path->size == 0 || path->p[path->size - 1] != '/')) /* Append slash */
     {
-        PRET(string_push(path, '/'));
+        WRET(string_push(path, '/'));
     }
     else if (!is_directory && path->size > 0 && path->p[path->size - 1] == '/') /* Pop slash */
     {

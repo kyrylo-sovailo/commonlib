@@ -49,9 +49,9 @@ ERROR_TYPE string_printf_end(struct CharBuffer *string, const char *format, ...)
 ERROR_TYPE string_vprintf_end(struct CharBuffer *string, const char *format, va_list va) NODISCARD PRINTFLIKE(2, 0);
 /* Allocates memory and prints string starting at the end of the current string */
 #ifdef ERROR_TRACE
-ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, bool suppress_errors, const char *format, va_list va) NODISCARD PRINTFLIKE(3, 0);
+ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, bool suppress_errors, const char *format, va_list va) NODISCARD PRINTFLIKE(3, 0);
 #else
-ERROR_TYPE string_vprintf_end_internal(struct CharBuffer *string, const char *format, va_list va) NODISCARD PRINTFLIKE(2, 0);
+ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *format, va_list va) NODISCARD PRINTFLIKE(2, 0);
 #endif
 
 /* Removes beginning at trailing spaces from string */

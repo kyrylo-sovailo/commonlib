@@ -113,7 +113,7 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
         while (new_capacity < required_capacity) new_capacity = (new_capacity << 1); \
         new_mask = new_capacity - 1; \
         new_p = malloc(new_capacity * sizeof(struct FRIENDLY_UPPER ## HashMapEntry)); \
-        CRET(new_p != NULL); \
+        ARET(new_p != NULL); \
         for (position = 0; position < new_capacity; position++) \
         { \
             new_p[position].key = NULL; /* Invalid */ \
@@ -153,7 +153,7 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, Generic8Byte, generic_qword)
             { \
                 const size_t key_size = strlen(key); \
                 cast->p[position].key = malloc(key_size + 1); \
-                CRET(cast->p[position].key != NULL); \
+                ARET(cast->p[position].key != NULL); \
                 memcpy(cast->p[position].key, key, key_size + 1); \
                 cast->p[position].hash = hash; \
                 cast->p[position].p = data; \
