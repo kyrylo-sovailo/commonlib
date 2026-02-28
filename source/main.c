@@ -14,7 +14,8 @@ ERROR_TYPE test1(void)
 
 ERROR_TYPE test2(void)
 {
-    WRET(test1());
+    PRET(test1());
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE test3(int argc, char **argv)
@@ -22,7 +23,8 @@ ERROR_TYPE test3(int argc, char **argv)
     ARET(argc > 0);
     ARET(argv[0] != NULL);
     PRET2(path_set_application(&g_application, argv[0]), "argc = %d, argv[0] = %s", argc, argv[0]);
-    WRET(test2());
+    PRET(test2());
+    ERROR_RETURN_OK();
 }
 
 int main(int argc, char **argv)

@@ -10,10 +10,10 @@ struct GenericHashKey
     char *key;
 };
 
-DECLARE_HASH_MAP(GENERIC_ARGMENT_1, GenericByteHMap, generic_byte_hmap_)
-DECLARE_HASH_MAP(GENERIC_ARGMENT_2, GenericWordHMap, generic_word_hmap_)
-DECLARE_HASH_MAP(GENERIC_ARGMENT_4, GenericDWordHMap, generic_dword_hmap_)
-DECLARE_HASH_MAP(GENERIC_ARGMENT_8, GenericQWordHMap, generic_qword_hmap_)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_1, GenericByteHMap)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_2, GenericWordHMap)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_4, GenericDWordHMap)
+DECLARE_HASH_MAP(GENERIC_ARGMENT_8, GenericQWordHMap)
 
 #define IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(STRUCT_NAME) \
 { \

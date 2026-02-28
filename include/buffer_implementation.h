@@ -17,7 +17,7 @@ ERROR_TYPE FUNCTION_NAME ## resize(struct STRUCT_NAME *buffer, size_t size) \
     case 2: return generic_buffer_resize_2(buffer, size); \
     case 4: return generic_buffer_resize_4(buffer, size); \
     case 8: return generic_buffer_resize_8(buffer, size); \
-    default: return generic_buffer_resize_n(sizeof(*buffer->p), buffer, size); \
+    default: return generic_buffer_resize_n(buffer, size, sizeof(*buffer->p)); \
     } \
 }
 #define IMPLEMENT_BUFFER_APPEND(TYPE, STRUCT_NAME, FUNCTION_NAME) \
@@ -29,7 +29,7 @@ ERROR_TYPE FUNCTION_NAME ## append(struct STRUCT_NAME *buffer, const TYPE *data,
     case 2: return generic_buffer_append_2(buffer, data, size); \
     case 4: return generic_buffer_append_4(buffer, data, size); \
     case 8: return generic_buffer_append_8(buffer, data, size); \
-    default: return generic_buffer_append_n(sizeof(*buffer->p), buffer, data, size); \
+    default: return generic_buffer_append_n(buffer, data, size, sizeof(*buffer->p)); \
     } \
 }
 #define IMPLEMENT_BUFFER_PUSH(TYPE, STRUCT_NAME, FUNCTION_NAME, SIZE) \

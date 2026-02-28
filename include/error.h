@@ -80,13 +80,6 @@
 #define PRET2(EXPRESSION, FORMAT, A, B) { EXPRESSION; }
 #define PRET3(EXPRESSION, FORMAT, A, B, C) { EXPRESSION; }
 
-/* Returns either error or success (WRET = wrap return) */
-#define WRET(EXPRESSION) { EXPRESSION; }
-#define WRET0(EXPRESSION, FORMAT) { EXPRESSION; }
-#define WRET1(EXPRESSION, FORMAT, A) { EXPRESSION; }
-#define WRET2(EXPRESSION, FORMAT, A, B) { EXPRESSION; }
-#define WRET3(EXPRESSION, FORMAT, A, B, C) { EXPRESSION; }
-
 /* Prints error and dies */
 void error_internal_print_die(const char *format, ...) NORETURN PRINTFLIKE(1, 2);
 
@@ -98,7 +91,7 @@ void error_internal_print_die(const char *format, ...) NORETURN PRINTFLIKE(1, 2)
 #define ERROR_TYPE bool
 #define ERROR_DECLARE() bool success
 #define ERROR_ASSIGN(EXPRESSION) success = EXPRESSION
-#define ERROR_RETURN() WRET(success) /* return success */
+#define ERROR_RETURN() { PRET(success); return true; }
 #define ERROR_RETURN_OK() return true
 
 /* Assigns 'error' variable and goes to 'finalize' label (GOTO = goto) */
@@ -143,13 +136,6 @@ void error_internal_print_die(const char *format, ...) NORETURN PRINTFLIKE(1, 2)
 #define PRET2(EXPRESSION, FORMAT, A, B) ARET2(EXPRESSION, FORMAT, A, B)
 #define PRET3(EXPRESSION, FORMAT, A, B, C) ARET3(EXPRESSION, FORMAT, A, B, C)
 
-/* Returns either error or success (WRET = wrap return) */
-#define WRET(EXPRESSION) { const bool check = EXPRESSION; if (!check) error_internal_print(ERROR_FORMAT_E(#EXPRESSION)); return check; }
-#define WRET0(EXPRESSION, FORMAT) { const bool check = EXPRESSION; if (!check) error_internal_print(ERROR_FORMAT_EF(#EXPRESSION, FORMAT)); return check; }
-#define WRET1(EXPRESSION, FORMAT, A) { const bool check = EXPRESSION; if (!check) error_internal_print(ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A); return check; }
-#define WRET2(EXPRESSION, FORMAT, A, B) { const bool check = EXPRESSION; if (!check) error_internal_print(ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B); return check; }
-#define WRET3(EXPRESSION, FORMAT, A, B, C) { const bool check = EXPRESSION; if (!check) error_internal_print(ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B, C); return check; }
-
 /* Prints error */
 void error_internal_print(const char *format, ...) PRINTFLIKE(1, 2);
 
@@ -168,7 +154,7 @@ struct Error;
 #define ERROR_TYPE struct Error*
 #define ERROR_DECLARE() struct Error* error
 #define ERROR_ASSIGN(EXPRESSION) error = EXPRESSION
-#define ERROR_RETURN() WRET(error)
+#define ERROR_RETURN() { PRET(error); return OK; }
 #define ERROR_RETURN_OK() return OK
 
 /* Assigns 'error' variable and goes to 'finalize' label (GOTO = goto) */
@@ -212,13 +198,6 @@ struct Error;
 #define PRET1(EXPRESSION, FORMAT, A) { struct Error *check = EXPRESSION; if (check != OK) return error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A); }
 #define PRET2(EXPRESSION, FORMAT, A, B) { struct Error *check = EXPRESSION; if (check != OK) return error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B); }
 #define PRET3(EXPRESSION, FORMAT, A, B, C) { struct Error *check = EXPRESSION; if (check != OK) return error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B, C); }
-
-/* Returns either error or success (WRET = wrap return) */
-#define WRET(EXPRESSION) { struct Error *check = EXPRESSION; return (check != OK) ? error_internal_allocate_append(check, ERROR_FORMAT_E(#EXPRESSION)) : OK; }
-#define WRET0(EXPRESSION, FORMAT) { struct Error *check = EXPRESSION; return (check != OK) ? error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT)) : OK; }
-#define WRET1(EXPRESSION, FORMAT, A) { struct Error *check = EXPRESSION; return (check != OK) ? error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A) : OK; }
-#define WRET2(EXPRESSION, FORMAT, A, B) { struct Error *check = EXPRESSION; return (check != OK) ? error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B) : OK; }
-#define WRET3(EXPRESSION, FORMAT, A, B, C) { struct Error *check = EXPRESSION; return (check != OK) ? error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B, C) : OK; }
 
 /* Creates error (guaranteed to succeed) */
 struct Error *error_internal_allocate(const char *format, ...) NODISCARD PRINTFLIKE(1, 2);

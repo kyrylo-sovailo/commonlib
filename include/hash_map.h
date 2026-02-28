@@ -11,7 +11,7 @@
     #define GENERIC_ARGMENT_8 size_t
 #endif
 
-#define DECLARE_HASH_MAP(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+#define DECLARE_HASH_MAP(TYPE, STRUCT_NAME) \
 struct STRUCT_NAME ## Entry \
 { \
     size_t hash; \

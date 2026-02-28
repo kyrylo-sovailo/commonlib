@@ -75,12 +75,14 @@ ERROR_TYPE string_reserve(struct CharBuffer *string, size_t capacity)
 
 ERROR_TYPE string_copy(struct CharBuffer *string, const struct CharBuffer *other)
 {
-    WRET(string_copy_mem(string, other->p, other->size));
+    PRET(string_copy_mem(string, other->p, other->size));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_copy_str(struct CharBuffer *string, const char *other)
 {
-    WRET(string_copy_mem(string, other, strlen(other)));
+    PRET(string_copy_mem(string, other, strlen(other)));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_copy_mem(struct CharBuffer *string, const char *other, size_t other_size)
@@ -108,12 +110,14 @@ ERROR_TYPE string_push(struct CharBuffer *string, char other)
 
 ERROR_TYPE string_append(struct CharBuffer *string, const struct CharBuffer *other)
 {
-    WRET(string_append_mem(string, other->p, other->size));
+    PRET(string_append_mem(string, other->p, other->size));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_append_str(struct CharBuffer *string, const char *other)
 {
-    WRET(string_append_mem(string, other, strlen(other)));
+    PRET(string_append_mem(string, other, strlen(other)));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_append_mem(struct CharBuffer *string, const char *other, size_t other_size)
@@ -145,10 +149,11 @@ ERROR_TYPE string_vprintf(struct CharBuffer *string, const char *format, va_list
     string->size = 0;
     if (string->p != NULL) string->p[0] = '\0';
     #ifdef ERROR_TRACE
-        WRET(string_internal_vprintf_end(string, false, format, va));
+        PRET(string_internal_vprintf_end(string, false, format, va));
     #else
-        WRET(string_internal_vprintf_end(string, format, va));
+        PRET(string_internal_vprintf_end(string, format, va));
     #endif
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_printf_end(struct CharBuffer *string, const char *format, ...)
@@ -168,10 +173,11 @@ ERROR_TYPE string_printf_end(struct CharBuffer *string, const char *format, ...)
 ERROR_TYPE string_vprintf_end(struct CharBuffer *string, const char *format, va_list va)
 {
     #ifdef ERROR_TRACE
-        WRET(string_internal_vprintf_end(string, false, format, va));
+        PRET(string_internal_vprintf_end(string, false, format, va));
     #else
-        WRET(string_internal_vprintf_end(string, format, va));
+        PRET(string_internal_vprintf_end(string, format, va));
     #endif
+    ERROR_RETURN_OK();
 }
 
 #ifndef ERROR_DIE
@@ -642,12 +648,14 @@ ERROR_TYPE string_remove(struct CharBuffer *string, size_t begin, size_t size)
 
 ERROR_TYPE string_insert(struct CharBuffer *string, size_t begin, const struct CharBuffer *other)
 {
-    WRET(string_insert_mem(string, begin, other->p, other->size));
+    PRET(string_insert_mem(string, begin, other->p, other->size));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_insert_str(struct CharBuffer *string, size_t begin, const char *other)
 {
-    WRET(string_insert_mem(string, begin, other, strlen(other)));
+    PRET(string_insert_mem(string, begin, other, strlen(other)));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_insert_mem(struct CharBuffer *string, size_t begin, const char *other, size_t other_size)
@@ -671,12 +679,14 @@ ERROR_TYPE string_insert_mem(struct CharBuffer *string, size_t begin, const char
 
 ERROR_TYPE string_replace(struct CharBuffer *string, size_t begin, size_t size, const struct CharBuffer *other)
 {
-    WRET(string_replace_mem(string, begin, size, other->p, other->size));
+    PRET(string_replace_mem(string, begin, size, other->p, other->size));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_replace_str(struct CharBuffer *string, size_t begin, size_t size, const char *other)
 {
-    WRET(string_replace_mem(string, begin, size, other, strlen(other)));
+    PRET(string_replace_mem(string, begin, size, other, strlen(other)));
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t size, const char *other, size_t other_size)

@@ -12,7 +12,7 @@
     #define GENERIC_ARGMENT_8 long
 #endif
 
-#define DECLARE_BUFFER(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+#define DECLARE_BUFFER(TYPE, STRUCT_NAME) \
 struct STRUCT_NAME \
 { \
     TYPE *p; \

@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-DECLARE_BUFFER(GENERIC_ARGMENT_1, GenericByteBuffer, generic_byte_)
-DECLARE_BUFFER(GENERIC_ARGMENT_2, GenericWordBuffer, generic_word_)
-DECLARE_BUFFER(GENERIC_ARGMENT_4, GenericDWordBuffer, generic_dword_)
-DECLARE_BUFFER(GENERIC_ARGMENT_8, GenericQWordBuffer, generic_qword_)
+DECLARE_BUFFER(GENERIC_ARGMENT_1, GenericByteBuffer)
+DECLARE_BUFFER(GENERIC_ARGMENT_2, GenericWordBuffer)
+DECLARE_BUFFER(GENERIC_ARGMENT_4, GenericDWordBuffer)
+DECLARE_BUFFER(GENERIC_ARGMENT_8, GenericQWordBuffer)
 
 #define IMPLEMENT_GENERIC_BUFFER_RESIZE(STRUCT_NAME, SIZE_EXPRESSION) \
 { \
