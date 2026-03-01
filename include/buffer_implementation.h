@@ -13,11 +13,11 @@ ERROR_TYPE FUNCTION_NAME ## resize(struct STRUCT_NAME *buffer, size_t size) \
 { \
     switch (sizeof(*buffer->p)) \
     { \
-    case 1: return generic_buffer_resize_1(buffer, size); \
-    case 2: return generic_buffer_resize_2(buffer, size); \
-    case 4: return generic_buffer_resize_4(buffer, size); \
-    case 8: return generic_buffer_resize_8(buffer, size); \
-    default: return generic_buffer_resize_n(buffer, size, sizeof(*buffer->p)); \
+    case 1: ERROR_RETURN_OPERATOR() generic_buffer_resize_1(buffer, size); break; \
+    case 2: ERROR_RETURN_OPERATOR() generic_buffer_resize_2(buffer, size); break; \
+    case 4: ERROR_RETURN_OPERATOR() generic_buffer_resize_4(buffer, size); break; \
+    case 8: ERROR_RETURN_OPERATOR() generic_buffer_resize_8(buffer, size); break; \
+    default: ERROR_RETURN_OPERATOR() generic_buffer_resize_n(buffer, size, sizeof(*buffer->p)); break; \
     } \
 }
 #define IMPLEMENT_BUFFER_APPEND(TYPE, STRUCT_NAME, FUNCTION_NAME) \
@@ -25,19 +25,19 @@ ERROR_TYPE FUNCTION_NAME ## append(struct STRUCT_NAME *buffer, const TYPE *data,
 { \
     switch (sizeof(*buffer->p)) \
     { \
-    case 1: return generic_buffer_append_1(buffer, data, size); \
-    case 2: return generic_buffer_append_2(buffer, data, size); \
-    case 4: return generic_buffer_append_4(buffer, data, size); \
-    case 8: return generic_buffer_append_8(buffer, data, size); \
-    default: return generic_buffer_append_n(buffer, data, size, sizeof(*buffer->p)); \
+    case 1: ERROR_RETURN_OPERATOR() generic_buffer_append_1(buffer, data, size); break; \
+    case 2: ERROR_RETURN_OPERATOR() generic_buffer_append_2(buffer, data, size); break; \
+    case 4: ERROR_RETURN_OPERATOR() generic_buffer_append_4(buffer, data, size); break; \
+    case 8: ERROR_RETURN_OPERATOR() generic_buffer_append_8(buffer, data, size); break; \
+    default: ERROR_RETURN_OPERATOR() generic_buffer_append_n(buffer, data, size, sizeof(*buffer->p)); break; \
     } \
 }
 #define IMPLEMENT_BUFFER_PUSH(TYPE, STRUCT_NAME, FUNCTION_NAME, SIZE) \
 ERROR_TYPE FUNCTION_NAME ## push(struct STRUCT_NAME *buffer, TYPE data) \
 { \
-    ERROR_TYPE check[(sizeof(*buffer->p) == SIZE && sizeof(data) == SIZE) ? 1 : -1]; \
-    check[0] = generic_buffer_push_ ## SIZE(buffer, (GENERIC_ARGMENT_ ## SIZE)data); \
-    return check[0]; \
+    ERROR_TYPE static_check[(sizeof(*buffer->p) == SIZE && sizeof(data) == SIZE) ? 1 : -1]; \
+    (void)static_check; \
+    ERROR_RETURN_OPERATOR() generic_buffer_push_ ## SIZE(buffer, (GENERIC_ARGMENT_ ## SIZE)data); \
 }
 
 void generic_buffer_finalize(void *buffer);

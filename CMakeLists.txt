@@ -10,12 +10,14 @@ add_compile_options(-Werror)
 add_link_options(-Wl,--no-undefined)
 
 set(SOURCES
+source/char_buffer.c
 source/error.c
 source/generic_buffer_implementation.c
 source/generic_hash_map_implementation.c
 source/main.c
 source/output.c
 source/path.c
+source/ring.c
 source/string.c)
 
 function(add_executable_relative TARGET_NAME)

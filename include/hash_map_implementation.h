@@ -6,36 +6,45 @@
 #define IMPLEMENT_HASH_MAP_FINALIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
 void FUNCTION_NAME ## finalize(struct STRUCT_NAME *map) \
 { \
-    if (sizeof(map->p->p) == 1) generic_hmap_finalize_1(map); \
-    else if (sizeof(map->p->p) == 2) generic_hmap_finalize_2(map); \
-    else if (sizeof(map->p->p) == 4) generic_hmap_finalize_4(map); \
-    else if (sizeof(map->p->p) == 8) generic_hmap_finalize_8(map); \
-    else generic_hmap_finalize(sizeof(*map->p), map); \
+    switch (sizeof(map->p->p) == 1) \
+    { \
+    case 1: generic_hmap_finalize_1(map); break; \
+    case 2: generic_hmap_finalize_2(map); break; \
+    case 4: generic_hmap_finalize_4(map); break; \
+    case 8: generic_hmap_finalize_8(map); break; \
+    default: generic_hmap_finalize(sizeof(*map->p), map); break; \
+    } \
 }
 #define IMPLEMENT_HASH_MAP_READ(TYPE, STRUCT_NAME, FUNCTION_NAME) \
 bool FUNCTION_NAME ## read(const struct STRUCT_NAME *map, const char *key, TYPE *data) \
 { \
-    if (sizeof(map->p->p) == 1) return generic_hmap_read_1(map, key, data); \
-    else if (sizeof(map->p->p) == 2) return generic_hmap_read_2(map, key, data); \
-    else if (sizeof(map->p->p) == 4) return generic_hmap_read_4(map, key, data); \
-    else if (sizeof(map->p->p) == 8) return generic_hmap_read_8(map, key, data); \
-    else return generic_hmap_read(sizeof(*map->p), map, key, data); \
+    switch (sizeof(map->p->p) == 1) \
+    { \
+    case 1: return generic_hmap_read_1(map, key, data); \
+    case 2: return generic_hmap_read_2(map, key, data); \
+    case 4: return generic_hmap_read_4(map, key, data); \
+    case 8: return generic_hmap_read_8(map, key, data); \
+    default: return generic_hmap_read(sizeof(*map->p), map, key, data); \
+    } \
 }
 #define IMPLEMENT_HASH_MAP_ERASE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
 bool FUNCTION_NAME ## erase(struct STRUCT_NAME *map, const char *key) \
 { \
-    if (sizeof(map->p->p) == 1) return generic_hmap_erase_1(map, key); \
-    else if (sizeof(map->p->p) == 2) return generic_hmap_erase_2(map, key); \
-    else if (sizeof(map->p->p) == 4) return generic_hmap_erase_4(map, key); \
-    else if (sizeof(map->p->p) == 8) return generic_hmap_erase_8(map, key); \
-    else return generic_hmap_erase(sizeof(*map->p), map, key); \
+    switch (sizeof(map->p->p) == 1) \
+    { \
+    case 1: return generic_hmap_erase_1(map, key); \
+    case 2: return generic_hmap_erase_1(map, key); \
+    case 4: return generic_hmap_erase_1(map, key); \
+    case 8: return generic_hmap_erase_1(map, key); \
+    default: return generic_hmap_erase(sizeof(*map->p), map, key); \
+    } \
 }
 #define IMPLEMENT_HASH_MAP_WRITE(TYPE, STRUCT_NAME, FUNCTION_NAME, SIZE) \
 ERROR_TYPE FUNCTION_NAME ## write(struct STRUCT_NAME *map, const char *key, TYPE data) \
 { \
-    struct Error *check[(sizeof(map->p->p) == SIZE) ? 1 : -1]; \
-    check[0] = generic_hmap_write_ ## SIZE(map, key, (GENERIC_ARGMENT_ ## SIZE)data); \
-    return check[0]; \
+    ERROR_TYPE static_check[(sizeof(map->p->p) == SIZE) ? 1 : -1]; \
+    (void)static_check; \
+    ERROR_RETURN_OPERATOR() generic_hmap_write_ ## SIZE(map, key, (GENERIC_ARGMENT_ ## SIZE)data); \
 }
 
 void generic_hmap_finalize_1(void *map);

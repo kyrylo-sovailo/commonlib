@@ -1,18 +1,19 @@
 #ifndef STRING_H
 #define STRING_H
 
+#include "char_buffer.h"
 #include "error.h"
 #include "macro.h"
 
 #include <stdarg.h>
 #include <stddef.h>
 
-struct CharBuffer
-{
-    char *p;
-    size_t size;        /* String size (does not include null terminator) */
-    size_t capacity;    /* Buffer capacity (includes null terminator) */
-};
+/*
+String is a CharBuffer that keeps a null terminator at the end.
+CharBuffer fields are implemented in the following way:
+ - size     - String size (does not include null terminator, unlike other buffers)
+ - capacity - Buffer capacity (includes null terminator, just like other buffers)
+*/
 
 /* Finalizes string */
 void string_finalize(struct CharBuffer *string);
