@@ -578,6 +578,7 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
                 if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
+            format_copy[format_copy_size - 1] = 's';
             if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, cast_p);
             else if (width_or_precision_present) printed = sprintf(end, format_copy, width_or_precision, cast_p);
             else printed = sprintf(end, format_copy, cast_p);
