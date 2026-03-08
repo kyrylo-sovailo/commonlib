@@ -7,10 +7,10 @@
 #include <stddef.h>
 
 /* Opens error output (guaranteed to succeed) */
-void output_open();
+void output_open(void);
 
 /* Closes error output (guaranteed to succeed) */
-void output_close();
+void output_close(void);
 
 /* Writes message to error output (guaranteed to succeed) */
 void output_print(const char *format, ...) PRINTFLIKE(1, 2);

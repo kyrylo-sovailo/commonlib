@@ -28,9 +28,8 @@ ERROR_TYPE path_up(struct CharBuffer *path, size_t count)
     ARET1(nonslash != 0, "Could not step back from %s", path->p);
     path->size = nonslash;
     path->p[nonslash] = '\0';
-    ERROR_RETURN_OK();
-
     (void)count; /*TODO*/
+    ERROR_RETURN_OK();
 }
 
 ERROR_TYPE path_append_str(struct CharBuffer *path, const char *other, bool is_directory)

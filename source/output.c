@@ -3,12 +3,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-void output_open()
+void output_open(void)
 {
     /* Nothing to do */
 }
 
-void output_close()
+void output_close(void)
 {
     fflush(stderr);
 }

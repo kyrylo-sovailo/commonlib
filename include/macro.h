@@ -26,11 +26,7 @@
 #endif
 
 /* Restrict keyword */
-#ifdef __STDC_VERSION__
-    #if __STDC_VERSION__ < 199901L
-        #define restrict
-    #endif
-#else
+#if __STDC_VERSION__ < 199901L
     #define restrict
 #endif
 

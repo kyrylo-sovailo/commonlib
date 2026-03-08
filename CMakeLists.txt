@@ -3,9 +3,13 @@ project(CommonLib LANGUAGES C)
 # All warnings
 add_compile_options(-Wall -Wextra -pedantic)
 # Even more warnings
-add_compile_options(-Wconversion -Wsign-conversion -Wmissing-declarations -Wunreachable-code -fanalyzer)
+add_compile_options(-Wconversion -Wsign-conversion -Wmissing-declarations -Wstrict-prototypes -Wunreachable-code)
 # Even stricter warnings
 add_compile_options(-Werror)
+# Static analyzer
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-fanalyzer)
+endif()
 # Ensure everything is implemented
 add_link_options(-Wl,--no-undefined)
 
@@ -48,7 +52,7 @@ function(add_library_relative TARGET_NAME)
     endforeach()
 endfunction()
 
-foreach(STANDARD IN ITEMS c89 c99)
+foreach(STANDARD IN ITEMS c89 c99 c23)
     foreach(STYLE IN ITEMS ERROR_DIE ERROR_PRINT ERROR_TRACE)
         string(SUBSTRING "${STYLE}" 6 1 STYLE_SUFFIX)
         string(TOLOWER "${STYLE_SUFFIX}" STYLE_SUFFIX)

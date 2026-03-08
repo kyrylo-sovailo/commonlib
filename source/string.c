@@ -422,7 +422,9 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
         {
             /* 3 = log(8)/log(2). Skipping whole logarithm stuff. Also add 8 for safety */
             char *end;
-            size_t estimated_size = (8 * sizeof(size_t) / 3 + 8) + (precision_present ? precision : 0);
+            /* TODO: file a bug to GCC because it is one of those cases where if(expr) and expr?: work differently */
+            /* size_t estimated_size = (8 * sizeof(size_t) / 3 + 8) + (precision_present ? precision : 0); */
+            size_t estimated_size = (8 * sizeof(size_t) / 3 + 8); if (precision_present) estimated_size += precision;
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
                 string_vprintf_end_internal_reserve(string, estimated_size);
@@ -559,6 +561,7 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
                 int *value = va_arg(va, int*);
                 *value = (int)string->size;
             }
+            printed = 0;
         }
         else if ((specifier == 'p')
             && (length == LENGTH_NONE))
