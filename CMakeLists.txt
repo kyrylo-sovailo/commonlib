@@ -18,6 +18,7 @@ source/char_buffer.c
 source/error.c
 source/generic_buffer_implementation.c
 source/generic_hash_map_implementation.c
+source/http.c
 source/main.c
 source/output.c
 source/path.c
