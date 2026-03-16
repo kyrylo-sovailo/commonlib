@@ -3,6 +3,16 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+void output_initialize(void)
+{
+    /* Nothing to do */
+}
+ 
+void output_finalize(void)
+{
+    /* Nothing to do */
+}
+
 void output_open(void)
 {
     /* Nothing to do */

@@ -1,4 +1,5 @@
 #include "../include/error.h"
+#include "../include/output.h"
 #include "../include/path.h"
 
 #include <stdio.h>
@@ -29,11 +30,21 @@ ERROR_TYPE test3(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    int code = 0;
+    #if defined(ERROR_DIE)
+        int code = 0;
+    #elif defined(ERROR_PRINT)
+        int code = 0;
+        bool success;
+    #else
+        int code = 0;
+        struct Error *error;
+    #endif
+
+    output_initialize();
     #if defined(ERROR_DIE)
         test3(argc, argv);
     #elif defined(ERROR_PRINT)
-        bool success = test3(argc, argv);
+        success = test3(argc, argv);
         if (!success)
         {
             error_print_close();
@@ -41,7 +52,7 @@ int main(int argc, char **argv)
             code = 1;
         }
     #else
-        struct Error *error = test3(argc, argv);
+        error = test3(argc, argv);
         if (error != OK)
         {
             error_print(error);
@@ -50,5 +61,7 @@ int main(int argc, char **argv)
             error_finalize(error);
         }
     #endif
+    output_finalize();
+
     return code;
 }

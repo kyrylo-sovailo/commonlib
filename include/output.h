@@ -6,6 +6,12 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+/* Initializes output module (guaranteed to succeed) */
+void output_initialize(void);
+ 
+/* Finalizes output module */
+void output_finalize(void);
+
 /* Opens error output (guaranteed to succeed) */
 void output_open(void);
 

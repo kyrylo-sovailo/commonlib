@@ -46,7 +46,7 @@ ERROR_TYPE string_resize(struct CharBuffer *string, size_t size)
     if (size + 1 > string->capacity)
     {
         char *new_p;
-        size_t new_capacity = (string->capacity < 2) ? 2 : string->capacity;
+        size_t new_capacity = (string->capacity == 0) ? 1 : string->capacity;
         while (size + 1 > new_capacity) new_capacity *= 2;
         new_p = realloc(string->p, new_capacity * sizeof(*string->p));
         ARET(new_p != NULL);
@@ -63,7 +63,7 @@ ERROR_TYPE string_reserve(struct CharBuffer *string, size_t capacity)
     if (capacity + 1 > string->capacity)
     {
         char *new_p;
-        size_t new_capacity = (string->capacity < 2) ? 2 : string->capacity;
+        size_t new_capacity = (string->capacity == 0) ? 1 : string->capacity;
         while (capacity + 1 > new_capacity) new_capacity *= 2;
         new_p = realloc(string->p, new_capacity * sizeof(*string->p));
         ARET(new_p != NULL);
@@ -96,7 +96,7 @@ ERROR_TYPE string_push(struct CharBuffer *string, char other)
 {
     if (string->size + 2 > string->capacity)
     {
-        const size_t new_capacity = (string->capacity < 2) ? 2 : (string->capacity * 2);
+        const size_t new_capacity = (string->capacity == 0) ? 1 : (string->capacity * 2);
         char *new_p = realloc(string->p, new_capacity * sizeof(*string->p));
         ARET(new_p != NULL);
         string->capacity = new_capacity;
@@ -190,7 +190,7 @@ static void string_vprintf_end_internal_reserve(struct CharBuffer *string, size_
     if (capacity + 1 > string->capacity)
     {
         char *new_p;
-        size_t new_capacity = (string->capacity < 2) ? 2 : string->capacity;
+        size_t new_capacity = (string->capacity == 0) ? 1 : string->capacity;
         while (capacity + 1 > new_capacity) new_capacity *= 2;
         new_p = realloc(string->p, new_capacity * sizeof(*string->p));
         #ifndef ERROR_DIE
@@ -219,7 +219,7 @@ static void string_vprintf_end_internal_compact(struct CharBuffer *string)
         if (new_capacity < string->capacity)
         {
             char *new_p = realloc(string->p, new_capacity);
-            if (new_p != NULL) string->p = new_p;
+            if (new_p != NULL) { string->capacity = new_capacity; string->p = new_p; }
         }
     }
 }
