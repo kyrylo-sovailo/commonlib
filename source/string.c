@@ -218,7 +218,7 @@ static void string_vprintf_end_internal_compact(struct CharBuffer *string)
         while (string->size + 1 > new_capacity) new_capacity *= 2;
         if (new_capacity < string->capacity)
         {
-            char *new_p = realloc(string->p, new_capacity);
+            char *new_p = realloc(string->p, new_capacity * sizeof(*string->p));
             if (new_p != NULL) { string->capacity = new_capacity; string->p = new_p; }
         }
     }
