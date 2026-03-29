@@ -7,7 +7,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 
 /* Needed by error_print_date */
@@ -105,8 +104,9 @@ struct Error *error_internal_allocate(const char *format, ...)
     if (error != NULL)
     {
         /* Print */
+        const struct Error zero = { 0 };
         va_list va;
-        memset(error, 0, sizeof(*error));
+        *error = zero;
         va_start(va, format);
         if (string_internal_vprintf_end(&error->message, true, format, va)) {}
         va_end(va);
@@ -126,8 +126,9 @@ struct Error *error_internal_allocate_append(struct Error *error, const char *fo
     if (new_error != NULL)
     {
         /* Print */
+        const struct Error zero = { 0 };
         va_list va;
-        memset(new_error, 0, sizeof(*new_error));
+        *error = zero;
         va_start(va, format);
         if (string_internal_vprintf_end(&new_error->message, true, format, va)) {}
         va_end(va);

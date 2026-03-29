@@ -17,6 +17,7 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, GenericQWordHMap)
 
 #define IMPLEMENT_GENERIC_HASH_MAP_FINALIZE(STRUCT_NAME) \
 { \
+    const struct STRUCT_NAME zero = { 0 }; \
     struct STRUCT_NAME *cast = (struct STRUCT_NAME*)map; \
     struct STRUCT_NAME ## Entry *entry; \
     for (entry = cast->p; entry != cast->p + cast->capacity; entry++) \
@@ -24,7 +25,7 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, GenericQWordHMap)
         if (entry->key != (void*)0 && entry->key != (void*)-1) free(entry->key); \
     } \
     if (cast->p != NULL) free(cast->p); \
-    memset(cast, 0, sizeof(*cast)); \
+    *cast = zero; \
 }
 
 #define IMPLEMENT_GENERIC_HASH_MAP_FIND(STRUCT_NAME) \
@@ -110,7 +111,7 @@ DECLARE_HASH_MAP(GENERIC_ARGMENT_8, GenericQWordHMap)
         size_t new_mask; \
         size_t position; \
         struct STRUCT_NAME ## Entry *new_p; \
-        while (new_capacity < required_capacity) new_capacity = (new_capacity << 1); \
+        while (new_capacity < required_capacity) new_capacity *= 2; \
         new_mask = new_capacity - 1; \
         new_p = malloc(new_capacity * sizeof(struct STRUCT_NAME ## Entry)); \
         ARET(new_p != NULL); \

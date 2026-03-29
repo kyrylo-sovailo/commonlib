@@ -16,7 +16,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, GenericQWordBuffer)
     { \
         void *new_p; \
         size_t new_capacity = (cast->capacity == 0) ? 1 : cast->capacity; \
-        while (size > new_capacity) new_capacity <<= 1; \
+        while (size > new_capacity) new_capacity *= 2; \
         new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
         ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
@@ -33,7 +33,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, GenericQWordBuffer)
     { \
         void *new_p; \
         size_t new_capacity = (cast->capacity == 0) ? 1 : cast->capacity; \
-        while (size > new_capacity) new_capacity <<= 1; \
+        while (size > new_capacity) new_capacity *= 2; \
         new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
         ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
@@ -50,7 +50,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, GenericQWordBuffer)
     { \
         void *new_p; \
         size_t new_capacity = (cast->capacity == 0) ? 1 : cast->capacity; \
-        while (cast->size + size > new_capacity) new_capacity <<= 1; \
+        while (cast->size + size > new_capacity) new_capacity *= 2; \
         new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
         ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
@@ -66,7 +66,7 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, GenericQWordBuffer)
     struct STRUCT_NAME* cast = (struct STRUCT_NAME*)buffer; \
     if (cast->size + 1 > cast->capacity) \
     { \
-        const size_t new_capacity = (cast->capacity == 0) ? 1 : (cast->capacity << 1); \
+        const size_t new_capacity = (cast->capacity == 0) ? 1 : (cast->capacity * 2); \
         void *new_p = realloc(cast->p, new_capacity * SIZE_EXPRESSION); \
         ARET(new_p != NULL); \
         cast->capacity = new_capacity; \
@@ -79,9 +79,10 @@ DECLARE_BUFFER(GENERIC_ARGMENT_8, GenericQWordBuffer)
 
 void generic_buffer_finalize(void *buffer)
 {
+    const struct GenericByteBuffer zero = { 0 };
     struct GenericByteBuffer* cast = (struct GenericByteBuffer*)buffer;
     if (cast->p != NULL) free(cast->p);
-    memset(cast, 0, sizeof(*cast));
+    *cast = zero;
 }
 
 ERROR_TYPE generic_buffer_resize_1(void *buffer, size_t size)
