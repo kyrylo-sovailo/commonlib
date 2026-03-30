@@ -22,7 +22,7 @@
 #endif
 
 /* C99 and C++ features */
-#if __STDC_VERSION__ < 199901L
+#if !defined(__cplusplus) && (__STDC_VERSION__ < 199901L)
     #define inline
     #define restrict
 #endif

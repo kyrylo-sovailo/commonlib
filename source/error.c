@@ -73,7 +73,7 @@ struct Error
 struct Error *error_internal_allocate(const char *format, ...)
 {
     /* Create new error buffer */
-    struct Error *error = malloc(sizeof(*error));
+    struct Error *error = (struct Error*)malloc(sizeof(*error));
     if (error != NULL)
     {
         /* Print */
@@ -95,7 +95,7 @@ struct Error *error_internal_allocate(const char *format, ...)
 struct Error *error_internal_allocate_append(struct Error *error, const char *format, ...)
 {
     /* Create new error buffer */
-    struct Error *new_error = malloc(sizeof(*new_error));
+    struct Error *new_error = (struct Error*)malloc(sizeof(*new_error));
     if (new_error != NULL)
     {
         /* Print */

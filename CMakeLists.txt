@@ -39,18 +39,17 @@ endif()
 
 # Source files
 set(SOURCES
-#source/char_buffer.c
-#source/char_hmap.c
+source/char_buffer.c
+source/char_hmap.c
 source/error.c
-#source/generic_buffer_implementation.c
-#source/generic_hash_map_implementation.c
-#source/http.c
-#source/main.c
-#source/output.c
-#source/path.c
-#source/ring.c
-source/string.c
-)
+source/generic_buffer_implementation.c
+source/generic_hash_map_implementation.c
+source/http.c
+source/main.c
+source/output.c
+source/path.c
+source/ring.c
+source/string.c)
 
 foreach(SOURCE IN LISTS SOURCES)
     get_filename_component(CXX_SOURCE "${SOURCE}" NAME_WE)
@@ -105,8 +104,7 @@ endfunction()
 
 # Define all standards and all styles
 if("${COMPILER_STYLE}" STREQUAL "GNU")
-    #set(STANDARDS c89;c99;c23;c++98)
-    set(STANDARDS c++17)
+    set(STANDARDS c89;c99;c23;c++98)
 else()
     set(STANDARDS c)
 endif()
