@@ -7,33 +7,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-
-/* Needed by error_print_date */
-static void error_print_date(void)
-{
-    time_t global_time;
-    struct tm *p_global_calender, global_calender;
-    struct tm *p_local_calender, local_calender;
-    char calender_buffer[64];
-
-    /* Print time */
-    global_time = time(NULL);
-    p_global_calender = gmtime(&global_time);
-    if (p_global_calender != NULL) global_calender = *p_global_calender;
-    p_local_calender = localtime(&global_time);
-    if (p_local_calender != NULL) local_calender = *p_local_calender;
-    if (p_global_calender != NULL)
-    {
-        strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &global_calender);
-        output_print("%s\n", calender_buffer);
-        if (p_local_calender != NULL)
-        {
-            strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
-            output_print("%s\n", calender_buffer);
-        }
-    }
-}
 
 #ifdef ERROR_DIE
 
@@ -45,7 +18,7 @@ void error_internal_print_die(const char *format, ...)
     output_vprint(format, va);
     va_end(va);
     output_print("\n");
-    error_print_date();
+    output_print_time();
     output_close();
     exit(1); /*TODO: get meaningful code*/
 }
@@ -54,12 +27,12 @@ void error_internal_print_die(const char *format, ...)
 
 #ifdef ERROR_PRINT
 
-static unsigned int error_print_number = 0;
+static unsigned int g_error_print_number = 0;
 
 void error_internal_print(const char *format, ...)
 {
     va_list va;
-    if (error_print_number == 0)
+    if (g_error_print_number == 0)
     {
         /* First error, print header */
         output_open();
@@ -69,8 +42,8 @@ void error_internal_print(const char *format, ...)
         va_end(va);
         output_print("\n" "Traceback (most recent call first):\n");
     }
-    error_print_number++;
-    output_print("%d. ", error_print_number);
+    g_error_print_number++;
+    output_print("%d. ", g_error_print_number);
     va_start(va, format);
     output_vprint(format, va);
     va_end(va);
@@ -81,8 +54,8 @@ void error_internal_print(const char *format, ...)
 
 void error_print_close(void)
 {
-    error_print_number = 0;
-    error_print_date();
+    g_error_print_number = 0;
+    output_print_time();
     output_print("\n");
     output_close();
 }
@@ -104,7 +77,7 @@ struct Error *error_internal_allocate(const char *format, ...)
     if (error != NULL)
     {
         /* Print */
-        const struct Error zero = { 0 };
+        const struct Error zero = ZERO_INIT;
         va_list va;
         *error = zero;
         va_start(va, format);
@@ -126,7 +99,7 @@ struct Error *error_internal_allocate_append(struct Error *error, const char *fo
     if (new_error != NULL)
     {
         /* Print */
-        const struct Error zero = { 0 };
+        const struct Error zero = ZERO_INIT;
         va_list va;
         *error = zero;
         va_start(va, format);
@@ -237,7 +210,7 @@ void error_print(const struct Error *error)
         }
 
         /* Print time */
-        error_print_date();
+        output_print_time();
     }
 
     /* Print trailing newline */

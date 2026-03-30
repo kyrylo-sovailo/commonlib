@@ -1,5 +1,5 @@
-#ifndef HASH_HASH_MAP_H
-#define HASH_HASH_MAP_H
+#ifndef HASH_MAP_H
+#define HASH_MAP_H
 
 #include "error.h"
 #include <stddef.h>
@@ -26,13 +26,15 @@ struct STRUCT_NAME \
     size_t capacity; \
 };
 
+#define DECLARE_HASH_MAP_INITIALIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+void FUNCTION_NAME ## initialize(struct STRUCT_NAME *map);
 #define DECLARE_HASH_MAP_FINALIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
 void FUNCTION_NAME ## finalize(struct STRUCT_NAME *map);
-#define DECLARE_HASH_MAP_READ(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-bool FUNCTION_NAME ## read(const struct STRUCT_NAME *map, const char *key, TYPE *data); /* Find existing key, return if exists */
-#define DECLARE_HASH_MAP_ERASE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-bool FUNCTION_NAME ## erase(struct STRUCT_NAME *map, const char *key); /* Erase existing key, return if existed */
-#define DECLARE_HASH_MAP_WRITE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-ERROR_TYPE FUNCTION_NAME ## write(struct STRUCT_NAME *map, const char *key, TYPE data) NODISCARD; /* Insert key, overwrite existing */
+#define DECLARE_HASH_MAP_VALID(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+bool FUNCTION_NAME ## valid(struct STRUCT_NAME ## Entry *entry);
+#define DECLARE_HASH_MAP_ACCESS(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+ERROR_TYPE FUNCTION_NAME ## access(struct STRUCT_NAME *map, const char *key, struct STRUCT_NAME ## Entry **entry, bool create) NODISCARD; /* Primary function, others are wrappers */
+#define DECLARE_HASH_MAP_DELETE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+void FUNCTION_NAME ## delete(struct STRUCT_NAME *map, struct STRUCT_NAME ## Entry *entry); /* Secondary function, others are wrappers */
 
 #endif

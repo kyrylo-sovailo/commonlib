@@ -24,4 +24,7 @@ void output_print(const char *format, ...) PRINTFLIKE(1, 2);
 /* Writes message to error output (guaranteed to succeed) */
 void output_vprint(const char *format, va_list va) PRINTFLIKE(1, 0);
 
+/* Write timestamp to error output (guaranteed to succeed) */
+void output_print_time(void);
+
 #endif

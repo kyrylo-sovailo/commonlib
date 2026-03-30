@@ -1,18 +1,17 @@
 #ifndef BOOL_H
 #define BOOL_H
 
-#ifdef LSP /* Override because clangd assumes built-in bool and can't handle typedef enum */
-
-#include <stdbool.h>
-
-#else /* General case */
-
-#if __STDC_VERSION__ < 199901L
+#if defined(__cplusplus)
+    /* Do nothing */
+#elif defined(LSP)
+    /* Special case because clangd assumes built-in bool and can't handle typedef enum */
+    #include <stdbool.h>
+#elif __STDC_VERSION__ < 199901L
+    /* Before C99 */
     typedef enum { false = 0, true = 1 } bool;
 #else
+    /* After C99 */
     #include <stdbool.h>
-#endif
-
 #endif
 
 #endif

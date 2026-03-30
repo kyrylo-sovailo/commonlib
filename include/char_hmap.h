@@ -1,0 +1,13 @@
+#ifndef CHAR_HMAP_H
+#define CHAR_HMAP_H
+
+#include "hash_map.h"
+
+DECLARE_HASH_MAP(char, CharBuffer)
+DECLARE_HASH_MAP_INITIALIZE(char, CharBuffer, char_hmap_)
+DECLARE_HASH_MAP_FINALIZE(char, CharBuffer, char_hmap_)
+DECLARE_HASH_MAP_VALID(char, CharBuffer, char_hmap_)
+DECLARE_HASH_MAP_ACCESS(char, CharBuffer, char_hmap_)
+DECLARE_HASH_MAP_DELETE(char, CharBuffer, char_hmap_)
+
+#endif

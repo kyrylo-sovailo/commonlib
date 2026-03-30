@@ -2,12 +2,8 @@
 #define MACRO_H
 
 /* Default error handling */
-#ifndef ERROR_DIE
-    #ifndef ERROR_PRINT
-        #ifndef ERROR_TRACE
-            #define ERROR_TRACE
-        #endif
-    #endif
+#if !defined(ERROR_DIE) && !defined(ERROR_PRINT) && !defined(ERROR_TRACE)
+    #define ERROR_TRACE
 #endif
 
 /* Function attributes */
@@ -25,9 +21,15 @@
     #define NORETURN
 #endif
 
-/* Restrict keyword */
+/* C99 and C++ features */
 #if __STDC_VERSION__ < 199901L
+    #define inline
     #define restrict
+#endif
+#ifdef __cplusplus
+    #define ZERO_INIT {}
+#else
+    #define ZERO_INIT { 0 }
 #endif
 
 /* Stringification */

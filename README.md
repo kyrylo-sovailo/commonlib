@@ -22,3 +22,10 @@ DECLARE_BUFFER_RESIZE(struct Entity, EntityBuffer, entity_);
 /* *Implement entity_resize() function (in source file) */
 IMPLEMENT_BUFFER_RESIZE(struct Entity, EntityBuffer, entity_);
 ```
+
+The reason why buffer implementation is split in three parts and not in two:
+ - So that the user never sees generic_* functions and can't accidentally call them
+ - Not really C way to have implementation in headers
+ - LTO may fix it
+
+Alternatively it could have been done via `static void buffer_function(buffer) { generic_function((RESERVED_TYPE*)buffer); }` in headers.

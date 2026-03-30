@@ -48,7 +48,7 @@ ERROR_TYPE string_resize(struct CharBuffer *string, size_t size)
         char *new_p;
         size_t new_capacity = (string->capacity == 0) ? 1 : string->capacity;
         while (size + 1 > new_capacity) new_capacity *= 2;
-        new_p = realloc(string->p, new_capacity * sizeof(*string->p));
+        new_p = (char*)realloc(string->p, new_capacity * sizeof(*string->p));
         ARET(new_p != NULL);
         string->capacity = new_capacity;
         string->p = new_p;
@@ -65,7 +65,7 @@ ERROR_TYPE string_reserve(struct CharBuffer *string, size_t capacity)
         char *new_p;
         size_t new_capacity = (string->capacity == 0) ? 1 : string->capacity;
         while (capacity + 1 > new_capacity) new_capacity *= 2;
-        new_p = realloc(string->p, new_capacity * sizeof(*string->p));
+        new_p = (char*)realloc(string->p, new_capacity * sizeof(*string->p));
         ARET(new_p != NULL);
         string->capacity = new_capacity;
         string->p = new_p;
@@ -97,7 +97,7 @@ ERROR_TYPE string_push(struct CharBuffer *string, char other)
     if (string->size + 2 > string->capacity)
     {
         const size_t new_capacity = (string->capacity == 0) ? 1 : (string->capacity * 2);
-        char *new_p = realloc(string->p, new_capacity * sizeof(*string->p));
+        char *new_p = (char*)realloc(string->p, new_capacity * sizeof(*string->p));
         ARET(new_p != NULL);
         string->capacity = new_capacity;
         string->p = new_p;
@@ -192,7 +192,7 @@ static void string_vprintf_end_internal_reserve(struct CharBuffer *string, size_
         char *new_p;
         size_t new_capacity = (string->capacity == 0) ? 1 : string->capacity;
         while (capacity + 1 > new_capacity) new_capacity *= 2;
-        new_p = realloc(string->p, new_capacity * sizeof(*string->p));
+        new_p = (char*)realloc(string->p, new_capacity * sizeof(*string->p));
         #ifndef ERROR_DIE
             if (new_p == NULL) return false;
         #else
@@ -218,7 +218,7 @@ static void string_vprintf_end_internal_compact(struct CharBuffer *string)
         while (string->size + 1 > new_capacity) new_capacity *= 2;
         if (new_capacity < string->capacity)
         {
-            char *new_p = realloc(string->p, new_capacity * sizeof(*string->p));
+            char *new_p = (char*)realloc(string->p, new_capacity * sizeof(*string->p));
             if (new_p != NULL) { string->capacity = new_capacity; string->p = new_p; }
         }
     }
@@ -422,9 +422,7 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
         {
             /* 3 = log(8)/log(2). Skipping whole logarithm stuff. Also add 8 for safety */
             char *end;
-            /* TODO: file a bug to GCC because it is one of those cases where if(expr) and expr?: work differently */
-            /* size_t estimated_size = (8 * sizeof(size_t) / 3 + 8) + (precision_present ? precision : 0); */
-            size_t estimated_size = (8 * sizeof(size_t) / 3 + 8); if (precision_present) estimated_size += precision;
+            size_t estimated_size = (8 * sizeof(size_t) / 3 + 8); if (precision_present) estimated_size += precision; /* Avoiding GCC bug */
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
                 string_vprintf_end_internal_reserve(string, estimated_size);
@@ -489,7 +487,7 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
         {
             /* 512 is WILD overestimate */
             char *end;
-            size_t estimated_size = 512 + (precision_present ? precision : 0);
+            size_t estimated_size = 512 + (size_t)(precision_present ? precision : 0);
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
                 string_vprintf_end_internal_reserve(string, estimated_size);
@@ -568,7 +566,7 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
         {
             char *end;
             const void *value = va_arg(va, const void*);
-            const struct CharBuffer *cast = value;
+            const struct CharBuffer *cast = (const struct CharBuffer*)value;
             const char *cast_p = string_get(cast);
             const size_t value_length = cast->size;
             size_t estimated_size = value_length;

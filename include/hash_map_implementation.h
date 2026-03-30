@@ -3,71 +3,85 @@
 
 #include "hash_map.h"
 
+#define IMPLEMENT_HASH_MAP_INITIALIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+void FUNCTION_NAME ## initialize(struct STRUCT_NAME *hmap) \
+{ \
+    generic_hmap_initialize(hmap); \
+}
+
 #define IMPLEMENT_HASH_MAP_FINALIZE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-void FUNCTION_NAME ## finalize(struct STRUCT_NAME *map) \
+void FUNCTION_NAME ## finalize(struct STRUCT_NAME *hmap) \
 { \
-    switch (sizeof(map->p->p) == 1) \
+    struct STRUCT_NAME ## Entry *entry; \
+    for (entry = hmap->p; entry < hmap->p + hmap->capacity; entry++) \
     { \
-    case 1: generic_hmap_finalize_1(map); break; \
-    case 2: generic_hmap_finalize_2(map); break; \
-    case 4: generic_hmap_finalize_4(map); break; \
-    case 8: generic_hmap_finalize_8(map); break; \
-    default: generic_hmap_finalize(sizeof(*map->p), map); break; \
+        if (generic_hmap_valid(entry)) FUNCTION_NAME ## finalize_element(&entry->p); \
+    } \
+    switch (sizeof(hmap->p->p)) \
+    { \
+    case 1: generic_hmap_finalize_1(hmap); break; \
+    case 2: generic_hmap_finalize_2(hmap); break; \
+    case 4: generic_hmap_finalize_4(hmap); break; \
+    case 8: generic_hmap_finalize_8(hmap); break; \
+    default: generic_hmap_finalize_n(hmap, sizeof(*hmap->p)); break; \
     } \
 }
-#define IMPLEMENT_HASH_MAP_READ(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-bool FUNCTION_NAME ## read(const struct STRUCT_NAME *map, const char *key, TYPE *data) \
+
+#define IMPLEMENT_HASH_MAP_VALID(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+bool FUNCTION_NAME ## valid(struct STRUCT_NAME ## Entry *entry) \
 { \
-    switch (sizeof(map->p->p) == 1) \
+    return generic_hmap_valid(entry); \
+}
+
+#define IMPLEMENT_HASH_MAP_ACCESS(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+ERROR_TYPE FUNCTION_NAME ## access(struct STRUCT_NAME *hmap, const char *key, struct STRUCT_NAME ## Entry **entry, bool create) \
+{ \
+    ERROR_DECLARE(); \
+    switch (sizeof(hmap->p->p)) \
     { \
-    case 1: return generic_hmap_read_1(map, key, data); \
-    case 2: return generic_hmap_read_2(map, key, data); \
-    case 4: return generic_hmap_read_4(map, key, data); \
-    case 8: return generic_hmap_read_8(map, key, data); \
-    default: return generic_hmap_read(sizeof(*map->p), map, key, data); \
+    case 1: ERROR_ASSIGN(generic_hmap_access_1(hmap, key, entry, create)); break; \
+    case 2: ERROR_ASSIGN(generic_hmap_access_2(hmap, key, entry, create)); break; \
+    case 4: ERROR_ASSIGN(generic_hmap_access_4(hmap, key, entry, create)); break; \
+    case 8: ERROR_ASSIGN(generic_hmap_access_8(hmap, key, entry, create)); break; \
+    default: ERROR_ASSIGN(generic_hmap_access_n(hmap, key, entry, create, sizeof(*hmap->p))); break; \
+    } \
+    ERROR_RETURN_VERBATIM(); \
+}
+
+#define IMPLEMENT_HASH_MAP_DELETE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
+void FUNCTION_NAME ## delete(struct STRUCT_NAME *hmap, struct STRUCT_NAME ## Entry *entry) \
+{ \
+    FUNCTION_NAME ## finalize_element(&entry->p); \
+    switch (sizeof(hmap->p->p)) \
+    { \
+    case 1: generic_hmap_delete_1(hmap, entry); break; \
+    case 2: generic_hmap_delete_2(hmap, entry); break; \
+    case 4: generic_hmap_delete_4(hmap, entry); break; \
+    case 8: generic_hmap_delete_8(hmap, entry); break; \
+    default: generic_hmap_delete_n(hmap, entry, sizeof(*hmap->p)); break; \
     } \
 }
-#define IMPLEMENT_HASH_MAP_ERASE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-bool FUNCTION_NAME ## erase(struct STRUCT_NAME *map, const char *key) \
-{ \
-    switch (sizeof(map->p->p) == 1) \
-    { \
-    case 1: return generic_hmap_erase_1(map, key); \
-    case 2: return generic_hmap_erase_1(map, key); \
-    case 4: return generic_hmap_erase_1(map, key); \
-    case 8: return generic_hmap_erase_1(map, key); \
-    default: return generic_hmap_erase(sizeof(*map->p), map, key); \
-    } \
-}
-#define IMPLEMENT_HASH_MAP_WRITE(TYPE, STRUCT_NAME, FUNCTION_NAME, SIZE) \
-ERROR_TYPE FUNCTION_NAME ## write(struct STRUCT_NAME *map, const char *key, TYPE data) \
-{ \
-    ERROR_TYPE static_check[(sizeof(map->p->p) == SIZE) ? 1 : -1]; \
-    (void)static_check; \
-    ERROR_RETURN_OPERATOR() generic_hmap_write_ ## SIZE(map, key, (GENERIC_ARGMENT_ ## SIZE)data); \
-}
 
-void generic_hmap_finalize_1(void *map);
-void generic_hmap_finalize_2(void *map);
-void generic_hmap_finalize_4(void *map);
-void generic_hmap_finalize_8(void *map);
-void generic_hmap_finalize_n(void *map, size_t entry_sizeof);
+void generic_hmap_initialize(void *hmap);
 
-bool generic_hmap_read_1(const void *map, const char *key, void *data);
-bool generic_hmap_read_2(const void *map, const char *key, void *data);
-bool generic_hmap_read_4(const void *map, const char *key, void *data);
-bool generic_hmap_read_8(const void *map, const char *key, void *data);
-bool generic_hmap_read_n(const void *map, const char *key, void *data, size_t entry_sizeof);
+void generic_hmap_finalize_1(void *hmap);
+void generic_hmap_finalize_2(void *hmap);
+void generic_hmap_finalize_4(void *hmap);
+void generic_hmap_finalize_8(void *hmap);
+void generic_hmap_finalize_n(void *hmap, size_t entry_sizeof);
 
-bool generic_hmap_erase_1(void *map, const char *key);
-bool generic_hmap_erase_2(void *map, const char *key);
-bool generic_hmap_erase_4(void *map, const char *key);
-bool generic_hmap_erase_8(void *map, const char *key);
-bool generic_hmap_erase_n(void *map, const char *key, size_t entry_sizeof);
+bool generic_hmap_valid(void *entry);
 
-ERROR_TYPE generic_hmap_write_1(void *map, const char *key, GENERIC_ARGMENT_1 data);
-ERROR_TYPE generic_hmap_write_2(void *map, const char *key, GENERIC_ARGMENT_2 data);
-ERROR_TYPE generic_hmap_write_4(void *map, const char *key, GENERIC_ARGMENT_4 data);
-ERROR_TYPE generic_hmap_write_8(void *map, const char *key, GENERIC_ARGMENT_8 data);
+ERROR_TYPE generic_hmap_access_1(void *hmap, const char *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_2(void *hmap, const char *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_4(void *hmap, const char *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_8(void *hmap, const char *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_n(void *hmap, const char *key, void *entry, bool create, size_t entry_sizeof);
+
+void generic_hmap_delete_1(void *hmap, void *entry);
+void generic_hmap_delete_2(void *hmap, void *entry);
+void generic_hmap_delete_4(void *hmap, void *entry);
+void generic_hmap_delete_8(void *hmap, void *entry);
+void generic_hmap_delete_n(void *hmap, void *entry, size_t entry_sizeof);
 
 #endif

@@ -1,10 +1,8 @@
 #include "../include/path.h"
 
-#include <unistd.h>
-
 #include <string.h>
 
-struct CharBuffer g_application = { 0 };
+struct CharBuffer g_application = ZERO_INIT;
 
 ERROR_TYPE path_set_application(struct CharBuffer *name, const char *argv0)
 {
