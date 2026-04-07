@@ -75,9 +75,7 @@ static ERROR_TYPE path_internal_append_mem(struct CharBuffer *path, const char *
 
 ERROR_TYPE path_module_initialize(int argc, char **argv)
 {
-    ARET(argc > 0);
-    ARET(argv[0] != NULL);
-    PRET(path_copy_str(&g_application, argv[0]));
+    PRET(path_get_executable_path(&g_application, argc, argv));
     PRET(path_get_directory(&g_directory, &g_application, true));
     PRET(path_get_basename(&g_application, &g_application));
     PRET(path_get_working_directory(&g_working_directory));
@@ -228,6 +226,46 @@ bool path_absolute_mem(const char *path, size_t path_size)
         && path[0] == '/') return true;
     #endif
     return false;
+}
+
+ERROR_TYPE path_get_executable_path(struct CharBuffer *path, int argc, char **argv)
+{
+    #ifdef WIN32
+        struct WCharBuffer wpath = ZERO_INIT;
+        ERROR_DECLARE();
+        (void)argc;
+        (void)argv;
+        PRET(wchar_buffer_resize(&wpath, 256));
+        while (true)
+        {
+            DWORD size = GetModuleFileNameW(NULL, wpath.p, (DWORD)wpath.size);
+            AGOTO(size != 0);
+            if (size == wpath.size)
+            {
+                PGOTO(wchar_buffer_resize(&wpath, 2 * wpath.size));
+            }
+            else
+            {
+                wpath.size = size;
+                break;
+            }
+        }
+        if (wpath.p[wpath.size - 1] == '/' || wpath.p[wpath.size - 1] == '\\') { wpath.size--; wpath.p[wpath.size] = '\0'; }
+        PGOTO(string_to_string(&wpath, path));
+        wchar_buffer_finalize(&wpath);
+        ERROR_RETURN_OK();
+
+        #ifndef ERROR_DIE
+            failure:
+            wchar_buffer_finalize(&wpath);
+            ERROR_RETURN();
+        #endif
+    #else
+        ARET(argc > 0);
+        ARET(argv[0] != NULL);
+        PRET(path_copy_str(path, argv[0]));
+        ERROR_RETURN_OK();
+    #endif
 }
 
 ERROR_TYPE path_get_working_directory(struct CharBuffer *path)

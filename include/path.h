@@ -46,6 +46,8 @@ bool path_absolute(const struct CharBuffer *path);
 bool path_absolute_str(const char *path);
 bool path_absolute_mem(const char *path, size_t path_size);
 
+/* Gets executable path */
+ERROR_TYPE path_get_executable_path(struct CharBuffer *path, int argc, char **argv) NODISCARD;
 /* Gets current working directory */
 ERROR_TYPE path_get_working_directory(struct CharBuffer *path) NODISCARD;
 /* Gets directory of the path (directory == path is allowed) */
