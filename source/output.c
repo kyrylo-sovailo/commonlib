@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <time.h>
 
-void output_initialize(void)
+void output_module_initialize(void)
 {
     /* Nothing to do */
 }
  
-void output_finalize(void)
+void output_module_finalize(void)
 {
     /* Nothing to do */
 }

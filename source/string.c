@@ -1,5 +1,4 @@
 #include "../include/string.h"
-#include "../include/buffer_implementation.h"
 
 #include <stdint.h>
 #include <stdarg.h>
@@ -31,14 +30,28 @@ enum
     LENGTH_LONG_DOUBLE  /* L  */
 };
 
+void string_initialize(struct CharBuffer *string)
+{
+    const struct CharBuffer zero = ZERO_INIT;
+    *string = zero;
+}
+
 void string_finalize(struct CharBuffer *string)
 {
-    generic_buffer_finalize(string);
+    const struct CharBuffer zero = ZERO_INIT;
+    if (string->p != NULL) free(string->p);
+    *string = zero;
 }
 
 const char *string_get(const struct CharBuffer *string)
 {
     return (string->p == NULL) ? "" : string->p;
+}
+
+void string_resize_zero(struct CharBuffer *string)
+{
+    string->size = 0;
+    if (string->p != NULL) string->p[0] = '\0';
 }
 
 ERROR_TYPE string_resize(struct CharBuffer *string, size_t size)
@@ -128,62 +141,47 @@ ERROR_TYPE string_append_mem(struct CharBuffer *string, const char *other, size_
     ERROR_RETURN_OK();
 }
 
-ERROR_TYPE string_printf(struct CharBuffer *string, const char *format, ...)
+ERROR_TYPE string_print(struct CharBuffer *string, const char *format, ...)
 {
     va_list va;
     ERROR_DECLARE();
-    string->size = 0;
-    if (string->p != NULL) string->p[0] = '\0';
     va_start(va, format);
-    #ifdef ERROR_TRACE
-        ERROR_ASSIGN(string_internal_vprintf_end(string, false, format, va));
-    #else
-        ERROR_ASSIGN(string_internal_vprintf_end(string, format, va));
-    #endif
+    ERROR_ASSIGN(string_vprint(string, format, va));
     va_end(va);
     ERROR_RETURN();
 }
 
-ERROR_TYPE string_vprintf(struct CharBuffer *string, const char *format, va_list va)
+ERROR_TYPE string_vprint(struct CharBuffer *string, const char *format, va_list va)
 {
     string->size = 0;
-    if (string->p != NULL) string->p[0] = '\0';
-    #ifdef ERROR_TRACE
-        PRET(string_internal_vprintf_end(string, false, format, va));
-    #else
-        PRET(string_internal_vprintf_end(string, format, va));
-    #endif
+    PRET(string_vprint_append(string, format, va));
     ERROR_RETURN_OK();
 }
 
-ERROR_TYPE string_printf_end(struct CharBuffer *string, const char *format, ...)
+ERROR_TYPE string_print_append(struct CharBuffer *string, const char *format, ...)
 {
     va_list va;
     ERROR_DECLARE();
     va_start(va, format);
-    #ifdef ERROR_TRACE
-        ERROR_ASSIGN(string_internal_vprintf_end(string, false, format, va));
-    #else
-        ERROR_ASSIGN(string_internal_vprintf_end(string, format, va));
-    #endif
+    ERROR_ASSIGN(string_vprint_append(string, format, va));
     va_end(va);
     ERROR_RETURN();
 }
 
-ERROR_TYPE string_vprintf_end(struct CharBuffer *string, const char *format, va_list va)
+ERROR_TYPE string_vprint_append(struct CharBuffer *string, const char *format, va_list va)
 {
     #ifdef ERROR_TRACE
-        PRET(string_internal_vprintf_end(string, false, format, va));
+        PRET(string_internal_vprint_append(string, false, format, va));
     #else
-        PRET(string_internal_vprintf_end(string, format, va));
+        PRET(string_internal_vprint_append(string, format, va));
     #endif
     ERROR_RETURN_OK();
 }
 
 #ifndef ERROR_DIE
-static bool string_vprintf_end_internal_reserve(struct CharBuffer *string, size_t estimated_size)
+static bool string_vprint_append_internal_reserve(struct CharBuffer *string, size_t estimated_size)
 #else
-static void string_vprintf_end_internal_reserve(struct CharBuffer *string, size_t estimated_size)
+static void string_vprint_append_internal_reserve(struct CharBuffer *string, size_t estimated_size)
 #endif
 {
     const size_t capacity = string->size + estimated_size;
@@ -206,7 +204,7 @@ static void string_vprintf_end_internal_reserve(struct CharBuffer *string, size_
     #endif
 }
 
-static void string_vprintf_end_internal_compact(struct CharBuffer *string)
+static void string_vprint_append_internal_compact(struct CharBuffer *string)
 {
     if (string->size == 0)
     {
@@ -226,9 +224,9 @@ static void string_vprintf_end_internal_compact(struct CharBuffer *string)
 
 /* #define ENABLE_LONG_LONG */
 #ifdef ERROR_TRACE
-ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, bool suppress_errors, const char *format, va_list va)
+ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, bool suppress_errors, const char *format, va_list va)
 #else
-ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *format, va_list va)
+ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const char *format, va_list va)
 #endif
 {
     /*
@@ -264,18 +262,18 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
         const char *next_percent = strchr(format, '%');
         const size_t length_without_percent = (next_percent == NULL) ? strlen(format) : (size_t)(next_percent - format);
         #if defined(ERROR_DIE)
-            string_vprintf_end_internal_reserve(string, length_without_percent);
+            string_vprint_append_internal_reserve(string, length_without_percent);
         #elif defined(ERROR_PRINT)
-            if (!string_vprintf_end_internal_reserve(string, length_without_percent)) { va_end(va); RET(); }
+            if (!string_vprint_append_internal_reserve(string, length_without_percent)) { va_end(va); RET(); }
         #else
-            if (!string_vprintf_end_internal_reserve(string, length_without_percent)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
+            if (!string_vprint_append_internal_reserve(string, length_without_percent)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
         #endif
         memcpy(string->p + string->size, format, length_without_percent);
         string->p[string->size + length_without_percent] = '\0';
         string->size += length_without_percent;
         if (next_percent == NULL)
         {
-            string_vprintf_end_internal_compact(string);
+            string_vprint_append_internal_compact(string);
             break;
         }
         
@@ -285,11 +283,11 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
         {
             /* Double percent, print % */
             #if defined(ERROR_DIE)
-                string_vprintf_end_internal_reserve(string, 1);
+                string_vprint_append_internal_reserve(string, 1);
             #elif defined(ERROR_PRINT)
-                if (!string_vprintf_end_internal_reserve(string, 1)) { va_end(va); RET(); }
+                if (!string_vprint_append_internal_reserve(string, 1)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, 1)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
+                if (!string_vprint_append_internal_reserve(string, 1)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             string->p[string->size] = '%';
             string->p[string->size + 1] = '\0';
@@ -387,11 +385,11 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
             size_t estimated_size = 1;
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
-                string_vprintf_end_internal_reserve(string, estimated_size);
+                string_vprint_append_internal_reserve(string, estimated_size);
             #elif defined(ERROR_PRINT)
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
@@ -406,11 +404,11 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
             size_t estimated_size = value_length;
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
-                string_vprintf_end_internal_reserve(string, estimated_size);
+                string_vprint_append_internal_reserve(string, estimated_size);
             #elif defined(ERROR_PRINT)
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             if (width_and_precision_present) printed = sprintf(end, format_copy, width, precision, value);
@@ -425,11 +423,11 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
             size_t estimated_size = (8 * sizeof(size_t) / 3 + 8); if (precision_present) estimated_size += precision; /* Avoiding GCC bug */
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
-                string_vprintf_end_internal_reserve(string, estimated_size);
+                string_vprint_append_internal_reserve(string, estimated_size);
             #elif defined(ERROR_PRINT)
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             if (length == LENGTH_LONG)
@@ -490,11 +488,11 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
             size_t estimated_size = 512 + (size_t)(precision_present ? precision : 0);
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
-                string_vprintf_end_internal_reserve(string, estimated_size);
+                string_vprint_append_internal_reserve(string, estimated_size);
             #elif defined(ERROR_PRINT)
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             #ifdef ENABLE_LONG_LONG
@@ -572,11 +570,11 @@ ERROR_TYPE string_internal_vprintf_end(struct CharBuffer *string, const char *fo
             size_t estimated_size = value_length;
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
-                string_vprintf_end_internal_reserve(string, estimated_size);
+                string_vprint_append_internal_reserve(string, estimated_size);
             #elif defined(ERROR_PRINT)
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); RET(); }
             #else
-                if (!string_vprintf_end_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
+                if (!string_vprint_append_internal_reserve(string, estimated_size)) { va_end(va); return suppress_errors ? PANIC : error_internal_allocate(ERROR_FORMAT()); }
             #endif
             end = string->p + string->size;
             format_copy[format_copy_size - 1] = 's';
@@ -616,8 +614,7 @@ void string_trim(struct CharBuffer *string)
         if (beginning_spaces == string->size)
         {
             /* The string is all spaces */
-            if (string->p != NULL) string->p[0] = '\0';
-            string->size = 0;
+            string_resize_zero(string);
             return;
         }
         c = string->p[beginning_spaces];
@@ -720,3 +717,155 @@ ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t si
     memcpy(segment_p, other, other_size);
     ERROR_RETURN_OK();
 }
+
+#ifdef WIN32
+
+static ERROR_TYPE string_internal_to_wstring(const char *p, size_t size, wchar_t *wp, size_t *wsize) NODISCARD;
+static ERROR_TYPE string_internal_to_wstring(const char *p, size_t size, wchar_t *wp, size_t *wsize)
+{
+    *wsize = 0;
+    while (size > 0)
+    {
+        /* Decode UTF-8 */
+        const unsigned char *cast = (const unsigned char*)p;
+        const unsigned char c = *cast;
+        size_t symbol_size;
+        unsigned int code;
+        if ((c & 0x80) == 0)
+        {
+            symbol_size = 1;
+            code = c;
+        }
+        else if ((c & 0xE0) == 0xC0)
+        {
+            ARET(size >= 2 && (cast[1] & 0xC0) == 0x80);
+            symbol_size = 2;
+            code = ((c & 0x1F) << 6) | (cast[1] & 0x3F);
+        }
+        else if ((c & 0xF0) == 0xE0)
+        {
+            ARET(size >= 3 && (cast[1] & 0xC0) == 0x80 && (cast[2] & 0xC0) == 0x80);
+            symbol_size = 3;
+            code = ((c & 0x0F) << 12) | ((cast[1] & 0x3F) << 6) | (cast[2] & 0x3F);
+        }
+        else if ((c & 0xF8) == 0xF0)
+        {
+            ARET(size >= 4 && (cast[1] & 0xC0) == 0x80 && (cast[2] & 0xC0) == 0x80 && (cast[3] & 0xC0) == 0x80);
+            symbol_size = 4;
+            code = ((c & 0x07) << 18) | ((cast[1] & 0x3F) << 12) | ((cast[2] & 0x3F) << 6) | (cast[3] & 0x3F);
+        }
+        else RET0("Invalid UTF-8 symbol");
+        p += symbol_size;
+        size -= symbol_size;
+
+        /* Encode UTF-16 */
+        ARET(code < 0xE000 || (code >= 0xD800 && code < 0x110000));
+        if (code < 0x10000)
+        {
+            if (wp != NULL) *wp = (wchar_t)code;
+            symbol_size = 1;
+        }
+        else
+        {
+            if (wp != NULL)
+            {
+                wp[0] = ((code - 0x10000) >> 10) & 0x3FF;
+                wp[1] = (code - 0x10000) & 0x3FF;
+            }
+            symbol_size = 2;
+        }
+        if (wp != NULL) wp += symbol_size;
+        *wsize += symbol_size;
+    }
+    ERROR_RETURN_OK();
+}
+
+static ERROR_TYPE string_internal_to_string(const wchar_t *wp, size_t wsize, char *p, size_t *size) NODISCARD;
+static ERROR_TYPE string_internal_to_string(const wchar_t *wp, size_t wsize, char *p, size_t *size)
+{
+    *size = 0;
+    while (wsize > 0)
+    {
+        /* Decode UTF-16 */
+        size_t symbol_size;
+        unsigned int code;
+        unsigned char *cast = (unsigned char*)p;
+        if (!((unsigned int)*wp >= 0xD800 && (unsigned int)*wp < 0xE000))
+        {
+            code = (unsigned int)*wp;
+            symbol_size = 1;
+        }
+        else if ((unsigned int)*wp >= 0xD800 && (unsigned int)*wp < 0xDC00)
+        {
+            ARET(wsize >= 2 && ((unsigned int)wp[1] >= 0xDC00 && (unsigned int)wp[1] < 0xE000));
+            code = ((((unsigned int)*wp - 0xD800) << 10) | ((unsigned int)wp[1] - 0xDC00)) + 0x10000;
+            symbol_size = 2;
+        }
+        else RET0("Invalid UTF-16 symbol");
+        wp += symbol_size;
+        wsize -= symbol_size;
+
+        /* Encode UTF-8 */
+        ARET(code < 0x110000);
+        if (code < 0x80)
+        {
+            if (cast != NULL) *cast = (unsigned char)code;
+            symbol_size = 1;
+        }
+        else if (code < 0x800)
+        {
+            if (cast != NULL)
+            {
+                cast[0] = (unsigned char)(0xC0 | ((code >> 6) & 0x1F));
+                cast[1] = (unsigned char)(0x80 | (code & 0x3F));
+            }
+            symbol_size = 2;
+        }
+        else if (code < 0x10000)
+        {
+            if (cast != NULL)
+            {
+                cast[0] = (unsigned char)(0xE0 | ((code >> 12) & 0x0F));
+                cast[1] = (unsigned char)(0x80 | ((code >> 6) & 0x3F));
+                cast[2] = (unsigned char)(0x80 | (code & 0x3F));
+            }
+            symbol_size = 3;
+        }
+        else
+        {
+            if (cast != NULL)
+            {
+                cast[0] = (unsigned char)(0xE0 | ((code >> 18) & 0x07));
+                cast[1] = (unsigned char)(0x80 | ((code >> 12) & 0x3F));
+                cast[2] = (unsigned char)(0x80 | ((code >> 6) & 0x3F));
+                cast[3] = (unsigned char)(0x80 | (code & 0x3F));
+            }
+            symbol_size = 4;
+        }
+        if (p != NULL) p += symbol_size;
+        *size += symbol_size;
+    }
+    ERROR_RETURN_OK();
+}
+
+ERROR_TYPE string_to_wstring(struct WCharBuffer *wstring, const struct CharBuffer *string) NODISCARD
+{
+    size_t wsize;
+    PRET(string_internal_to_wstring(string->p, string->size, NULL, &wsize));
+    PRET(wchar_buffer_resize(wstring, wsize + 1));
+    (void)string_internal_to_wstring(string->p, string->size, wstring->p, &wsize);
+    wstring->p[wsize] = '\0';
+    ERROR_RETURN_OK();
+}
+
+ERROR_TYPE wstring_to_string(struct CharBuffer *string, const struct WCharBuffer *wstring) NODISCARD
+{
+    size_t size;
+    PRET(string_internal_to_string(wstring->p, wstring->size, NULL, &size));
+    PRET(char_buffer_resize(string, size + 1));
+    (void)string_internal_to_string(wstring->p, wstring->size, string->p, &size);
+    string->p[size] = '\0';
+    ERROR_RETURN_OK();
+}
+
+#endif

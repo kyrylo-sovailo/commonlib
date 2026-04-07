@@ -1,5 +1,5 @@
-#ifndef BOOL_H
-#define BOOL_H
+#ifndef COMMONLIB_BOOL_H
+#define COMMONLIB_BOOL_H
 
 #if defined(__cplusplus)
     /* Do nothing */

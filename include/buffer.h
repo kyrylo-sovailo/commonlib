@@ -1,5 +1,5 @@
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef COMMONLIB_BUFFER_H
+#define COMMONLIB_BUFFER_H
 
 #include "error.h"
 

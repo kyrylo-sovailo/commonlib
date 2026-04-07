@@ -81,7 +81,7 @@ struct Error *error_internal_allocate(const char *format, ...)
         va_list va;
         *error = zero;
         va_start(va, format);
-        if (string_internal_vprintf_end(&error->message, true, format, va)) {}
+        if (string_internal_vprint_append(&error->message, true, format, va)) {}
         va_end(va);
         return error;
     }
@@ -103,7 +103,7 @@ struct Error *error_internal_allocate_append(struct Error *error, const char *fo
         va_list va;
         *error = zero;
         va_start(va, format);
-        if (string_internal_vprintf_end(&new_error->message, true, format, va)) {}
+        if (string_internal_vprint_append(&new_error->message, true, format, va)) {}
         va_end(va);
 
         /* Append */

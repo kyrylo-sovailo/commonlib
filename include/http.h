@@ -1,5 +1,5 @@
-#ifndef HTTP_H
-#define HTTP_H
+#ifndef COMMONLIB_HTTP_H
+#define COMMONLIB_HTTP_H
 
 extern const char *http_statuses_1xx[103-100+1];
 extern const char *http_statuses_2xx[2026-200+1];

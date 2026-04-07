@@ -1,16 +1,14 @@
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#ifndef COMMONLIB_OUTPUT_H
+#define COMMONLIB_OUTPUT_H
 
 #include "macro.h"
 
 #include <stdarg.h>
 #include <stddef.h>
 
-/* Initializes output module (guaranteed to succeed) */
-void output_initialize(void);
- 
-/* Finalizes output module */
-void output_finalize(void);
+/* Initializes/finalizes output module (guaranteed to succeed) */
+void output_module_initialize(void);
+void output_module_finalize(void);
 
 /* Opens error output (guaranteed to succeed) */
 void output_open(void);

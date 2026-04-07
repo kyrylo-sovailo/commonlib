@@ -21,10 +21,9 @@ ERROR_TYPE test2(void)
 
 ERROR_TYPE test3(int argc, char **argv)
 {
-    ARET(argc > 0);
-    ARET(argv[0] != NULL);
-    PRET2(path_set_application(&g_application, argv[0]), "argc = %d, argv[0] = %s", argc, argv[0]);
+    PRET(path_module_initialize(argc, argv));
     PRET(test2());
+    path_module_finalize();
     ERROR_RETURN_OK();
 }
 
@@ -40,7 +39,7 @@ int main(int argc, char **argv)
         struct Error *error;
     #endif
 
-    output_initialize();
+    output_module_initialize();
     #if defined(ERROR_DIE)
         test3(argc, argv);
     #elif defined(ERROR_PRINT)
@@ -61,7 +60,7 @@ int main(int argc, char **argv)
             error_finalize(error);
         }
     #endif
-    output_finalize();
+    output_module_finalize();
 
     return code;
 }

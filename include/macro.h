@@ -1,5 +1,5 @@
-#ifndef MACRO_H
-#define MACRO_H
+#ifndef COMMONLIB_MACRO_H
+#define COMMONLIB_MACRO_H
 
 /* Default error handling */
 #if !defined(ERROR_DIE) && !defined(ERROR_PRINT) && !defined(ERROR_TRACE)

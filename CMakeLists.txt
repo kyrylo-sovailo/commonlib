@@ -36,11 +36,14 @@ elseif("${COMPILER_STYLE}" STREQUAL "MSVC")
     add_compile_options(/wd5039) #C5039: Pointer or reference to potentially throwing function passed to 'extern "C"
     add_compile_options(/wd5045) #C5045: Compiler will insert Spectre mitigation for memory
 endif()
+if(WIN32)
+    add_compile_definitions(WIN32)
+endif()
 
 # Source files
 set(SOURCES
 source/char_buffer.c
-source/char_hmap.c
+source/char_hash_map.c
 source/error.c
 source/generic_buffer_implementation.c
 source/generic_hash_map_implementation.c
@@ -48,7 +51,6 @@ source/http.c
 source/main.c
 source/output.c
 source/path.c
-source/ring.c
 source/string.c)
 
 foreach(SOURCE IN LISTS SOURCES)

@@ -1,5 +1,5 @@
-#ifndef CHAR_HMAP_H
-#define CHAR_HMAP_H
+#ifndef COMMONLIB_CHAR_HASH_MAP_H
+#define COMMONLIB_CHAR_HASH_MAP_H
 
 #include "hash_map.h"
 

@@ -1,4 +1,4 @@
-#include "../include/char_hmap.h"
+#include "../include/char_hash_map.h"
 #include "../include/hash_map_implementation.h"
 
 /*
