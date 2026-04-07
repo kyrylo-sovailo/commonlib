@@ -21,10 +21,17 @@ ERROR_TYPE test2(void)
 
 ERROR_TYPE test3(int argc, char **argv)
 {
-    PRET(path_module_initialize(argc, argv));
-    PRET(test2());
+    ERROR_DECLARE();
+    PGOTO(path_module_initialize(argc, argv));
+    PGOTO(test2());
     path_module_finalize();
     ERROR_RETURN_OK();
+
+    #ifndef ERROR_DIE
+        failure:
+        path_module_finalize();
+        ERROR_RETURN();
+    #endif
 }
 
 int main(int argc, char **argv)

@@ -29,6 +29,7 @@ elseif("${COMPILER_STYLE}" STREQUAL "MSVC")
     # Warnings that come out of nowhere:
     add_compile_options(/wd4668) #C4668: Macro is not defined as a preprocessor macro
     add_compile_options(/wd4820) #C4820: N bytes padding added after data member
+    add_compile_options(/wd5039) #C5039: Pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc
     add_compile_options(/wd5045) #C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
     
     # Warnings about things that are not bugs but features:

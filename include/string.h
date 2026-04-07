@@ -25,7 +25,7 @@ void string_finalize(struct CharBuffer *string);
 const char *string_get(const struct CharBuffer *string);
 
 /* Sets the size to zero */
-void string_resize_zero(struct CharBuffer *string);
+void string_zero(struct CharBuffer *string);
 
 /* Resizes string (size does not include null terminator) */
 ERROR_TYPE string_resize(struct CharBuffer *string, size_t size) NODISCARD;

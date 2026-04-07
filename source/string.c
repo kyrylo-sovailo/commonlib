@@ -48,10 +48,10 @@ const char *string_get(const struct CharBuffer *string)
     return (string->p == NULL) ? "" : string->p;
 }
 
-void string_resize_zero(struct CharBuffer *string)
+void string_zero(struct CharBuffer *string)
 {
-    string->size = 0;
     if (string->p != NULL) string->p[0] = '\0';
+    string->size = 0;
 }
 
 ERROR_TYPE string_resize(struct CharBuffer *string, size_t size)
@@ -153,7 +153,7 @@ ERROR_TYPE string_print(struct CharBuffer *string, const char *format, ...)
 
 ERROR_TYPE string_vprint(struct CharBuffer *string, const char *format, va_list va)
 {
-    string->size = 0;
+    string_zero(string);
     PRET(string_vprint_append(string, format, va));
     ERROR_RETURN_OK();
 }
@@ -614,7 +614,7 @@ void string_trim(struct CharBuffer *string)
         if (beginning_spaces == string->size)
         {
             /* The string is all spaces */
-            string_resize_zero(string);
+            string_zero(string);
             return;
         }
         c = string->p[beginning_spaces];
@@ -854,6 +854,7 @@ ERROR_TYPE string_to_wstring(struct WCharBuffer *wstring, const struct CharBuffe
     PRET(string_internal_to_wstring(string->p, string->size, NULL, &wsize));
     PRET(wchar_buffer_resize(wstring, wsize + 1));
     PIGNORE(string_internal_to_wstring(string->p, string->size, wstring->p, &wsize));
+    wstring->size = wsize;
     wstring->p[wsize] = '\0';
     ERROR_RETURN_OK();
 }
@@ -864,6 +865,7 @@ ERROR_TYPE string_to_string(struct CharBuffer *string, const struct WCharBuffer 
     PRET(string_internal_to_string(wstring->p, wstring->size, NULL, &size));
     PRET(char_buffer_resize(string, size + 1));
     PIGNORE(string_internal_to_string(wstring->p, wstring->size, string->p, &size));
+    string->size = size;
     string->p[size] = '\0';
     ERROR_RETURN_OK();
 }

@@ -52,12 +52,12 @@ void output_print_time(void)
     if (p_local_calender != NULL) local_calender = *p_local_calender;
     if (p_global_calender != NULL)
     {
-        strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &global_calender);
+        strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S GMT", &global_calender); /* Hardcode GMT because Windows identified it incorrectly */
         output_print("%s\n", calender_buffer);
-        if (p_local_calender != NULL)
-        {
-            strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
-            output_print("%s\n", calender_buffer);
-        }
+    }
+    if (p_local_calender != NULL)
+    {
+        strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
+        output_print("%s\n", calender_buffer);
     }
 }

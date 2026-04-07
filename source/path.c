@@ -38,8 +38,36 @@ static const char *path_next_separator(const char *p, size_t size)
     #endif
 }
 
-static ERROR_TYPE path_internal_append_mem(struct CharBuffer *path, const char *other, size_t other_size) NODISCARD;
-static ERROR_TYPE path_internal_append_mem(struct CharBuffer *path, const char *other, size_t other_size)
+static size_t path_root_size(const char *p, size_t size)
+{
+    #ifdef WIN32
+        /* Path like C:\ */
+        if (size >= 3
+        && ((p[0] >= 'a' && p[0] <= 'z') || (p[0] >= 'A' && p[0] <= 'Z'))
+        && p[1] == ':'
+        && (p[2] == '/' || p[2] == '\\'))
+        {
+            return 3;
+        }
+
+        /* Path like \\.\ */
+        else if (size >= 2
+        && (p[0] == '/' || p[0] == '\\')
+        && (p[1] == '/' || p[1] == '\\'))
+        {
+            const char *last_separator = path_next_separator(p + 2, size - 2);
+            if (last_separator == NULL) return 2; /* Shouldn't happen actually */
+            else return (size_t)(last_separator - p) + 1;
+        }
+    #else
+        if (size >= 1 && p[0] == '/') return 1;
+    #endif
+    return 0;
+}
+
+
+static ERROR_TYPE path_append_mem_noroot(struct CharBuffer *path, const char *other, size_t other_size) NODISCARD;
+static ERROR_TYPE path_append_mem_noroot(struct CharBuffer *path, const char *other, size_t other_size)
 {
     const char *p = other;
     size_t size = other_size;
@@ -63,7 +91,7 @@ static ERROR_TYPE path_internal_append_mem(struct CharBuffer *path, const char *
         else
         {
             /* Regular case */
-            if (path->size > 0) PRET(string_push(path, PATH_SEPARATOR));
+            if (path->size > 0 && path->p[path->size - 1] != PATH_SEPARATOR) PRET(string_push(path, PATH_SEPARATOR)); /* Protection against root */
             PRET(string_append_mem(path, p, part_size));
         }
         if (found == NULL) break;
@@ -98,15 +126,21 @@ ERROR_TYPE path_copy(struct CharBuffer *path, const struct CharBuffer *other)
 
 ERROR_TYPE path_copy_str(struct CharBuffer *path, const char *other)
 {
-    path->size = 0;
-    PRET(path_internal_append_mem(path, other, strlen(other)));
+    PRET(path_copy_mem(path, other, strlen(other)));
     ERROR_RETURN_OK();
 }
 
 ERROR_TYPE path_copy_mem(struct CharBuffer *path, const char *other, size_t other_size)
 {
-    path->size = 0;
-    PRET(path_internal_append_mem(path, other, other_size));
+    const size_t root_size = path_root_size(other, other_size);
+    #ifdef WIN32
+        size_t i;
+        PRET(string_resize(path, root_size));
+        for (i = 0; i < root_size; i++) path->p[i] = (other[i] == '/') ? '\\' : other[i];
+    #else
+        PRET(string_copy_mem(path, other, root_size));
+    #endif
+    PRET(path_append_mem_noroot(path, other + root_size, other_size - root_size));
     ERROR_RETURN_OK();
 }
 
@@ -141,16 +175,14 @@ ERROR_TYPE path_append(struct CharBuffer *path, const struct CharBuffer *other)
 
 ERROR_TYPE path_append_str(struct CharBuffer *path, const char *other)
 {
-    size_t other_size = strlen(other);
-    ARET(!path_absolute_mem(other, other_size));
-    PRET(path_internal_append_mem(path, other, other_size));
+    PRET(path_append_mem(path, other, strlen(other)));
     ERROR_RETURN_OK();
 }
 
 ERROR_TYPE path_append_mem(struct CharBuffer *path, const char *other, size_t other_size)
 {
     ARET(!path_absolute_mem(other, other_size));
-    PRET(path_internal_append_mem(path, other, other_size));
+    PRET(path_append_mem_noroot(path, other, other_size));
     ERROR_RETURN_OK();
 }
 
@@ -166,7 +198,7 @@ ERROR_TYPE path_print(struct CharBuffer *path, const char *format, ...)
 
 ERROR_TYPE path_vprint(struct CharBuffer *path, const char *format, va_list va)
 {
-    path->size = 0;
+    string_zero(path);
     PRET(path_vprint_append(path, format, va));
     ERROR_RETURN_OK();
 }
@@ -203,6 +235,7 @@ ERROR_TYPE path_vprint_append(struct CharBuffer *path, const char *format, va_li
 
 bool path_absolute(const struct CharBuffer *path)
 {
+    /* Path is assumed to be formatted, could have spared some computations */
     return path_absolute_mem(path->p, path->size);
 }
 
@@ -213,19 +246,7 @@ bool path_absolute_str(const char *path)
 
 bool path_absolute_mem(const char *path, size_t path_size)
 {
-    #ifdef WIN32
-        if (path_size >= 3
-        && ((path[0] >= 'a' && path[0] <= 'z') || (path[0] >= 'A' && path[0] <= 'Z'))
-        && path[1] == ':'
-        && (path[2] == '/' || path[2] == '\\')) return true;
-        if (path_size >= 2
-        && (path[0] == '/' || path[0] == '\\')
-        && (path[1] == '/' || path[1] == '\\')) return true;
-    #else
-        if (path_size >= 1
-        && path[0] == '/') return true;
-    #endif
-    return false;
+    return path_root_size(path, path_size) > 0;
 }
 
 ERROR_TYPE path_get_executable_path(struct CharBuffer *path, int argc, char **argv)
@@ -250,8 +271,7 @@ ERROR_TYPE path_get_executable_path(struct CharBuffer *path, int argc, char **ar
                 break;
             }
         }
-        if (wpath.p[wpath.size - 1] == '/' || wpath.p[wpath.size - 1] == '\\') { wpath.size--; wpath.p[wpath.size] = '\0'; }
-        PGOTO(string_to_string(&wpath, path));
+        PGOTO(string_to_string(path, &wpath));
         wchar_buffer_finalize(&wpath);
         ERROR_RETURN_OK();
 
@@ -307,6 +327,9 @@ ERROR_TYPE path_get_working_directory(struct CharBuffer *path)
 
 ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuffer *path, bool append_dotdot_if_dotdot)
 {
+    #ifdef WIN32
+    const size_t root_size = path_root_size(path->p, path->size);
+    #endif
     size_t size = path->size;
     while (size > 0)
     {
@@ -314,7 +337,11 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
         if (path->p[size] == PATH_SEPARATOR)
         {
             /* Reached separator in absolute or relative path */
-            if (path_absolute(path))
+            #ifdef WIN32
+            if (root_size > 0 && size == root_size - 1)
+            #else
+            if (size == 0)
+            #endif
             {
                 /* Reached the root of absolute path */
                 RET();
@@ -347,7 +374,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
     else
     {
         /* True basename */
-        string_resize_zero(directory);
+        string_zero(directory);
     }
     ERROR_RETURN_OK();
 }
