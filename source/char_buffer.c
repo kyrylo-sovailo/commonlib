@@ -21,6 +21,6 @@ IMPLEMENT_BUFFER_FINALIZE(wchar_t, WCharBuffer, wchar_buffer_)
 IMPLEMENT_BUFFER_RESIZE(wchar_t, WCharBuffer, wchar_buffer_)
 IMPLEMENT_BUFFER_RESERVE(wchar_t, WCharBuffer, wchar_buffer_)
 IMPLEMENT_BUFFER_APPEND(wchar_t, WCharBuffer, wchar_buffer_)
-IMPLEMENT_BUFFER_PUSH(wchar_t, WCharBuffer, wchar_buffer_, 1)
+IMPLEMENT_BUFFER_PUSH(wchar_t, WCharBuffer, wchar_buffer_, 2)
 
 #endif

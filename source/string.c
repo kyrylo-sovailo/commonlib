@@ -740,19 +740,19 @@ static ERROR_TYPE string_internal_to_wstring(const char *p, size_t size, wchar_t
         {
             ARET(size >= 2 && (cast[1] & 0xC0) == 0x80);
             symbol_size = 2;
-            code = ((c & 0x1F) << 6) | (cast[1] & 0x3F);
+            code = (unsigned int)(((c & 0x1F) << 6) | (cast[1] & 0x3F));
         }
         else if ((c & 0xF0) == 0xE0)
         {
             ARET(size >= 3 && (cast[1] & 0xC0) == 0x80 && (cast[2] & 0xC0) == 0x80);
             symbol_size = 3;
-            code = ((c & 0x0F) << 12) | ((cast[1] & 0x3F) << 6) | (cast[2] & 0x3F);
+            code = (unsigned int)(((c & 0x0F) << 12) | ((cast[1] & 0x3F) << 6) | (cast[2] & 0x3F));
         }
         else if ((c & 0xF8) == 0xF0)
         {
             ARET(size >= 4 && (cast[1] & 0xC0) == 0x80 && (cast[2] & 0xC0) == 0x80 && (cast[3] & 0xC0) == 0x80);
             symbol_size = 4;
-            code = ((c & 0x07) << 18) | ((cast[1] & 0x3F) << 12) | ((cast[2] & 0x3F) << 6) | (cast[3] & 0x3F);
+            code = (unsigned int)(((c & 0x07) << 18) | ((cast[1] & 0x3F) << 12) | ((cast[2] & 0x3F) << 6) | (cast[3] & 0x3F));
         }
         else RET0("Invalid UTF-8 symbol");
         p += symbol_size;
@@ -853,17 +853,17 @@ ERROR_TYPE string_to_wstring(struct WCharBuffer *wstring, const struct CharBuffe
     size_t wsize;
     PRET(string_internal_to_wstring(string->p, string->size, NULL, &wsize));
     PRET(wchar_buffer_resize(wstring, wsize + 1));
-    (void)string_internal_to_wstring(string->p, string->size, wstring->p, &wsize);
+    PIGNORE(string_internal_to_wstring(string->p, string->size, wstring->p, &wsize));
     wstring->p[wsize] = '\0';
     ERROR_RETURN_OK();
 }
 
-ERROR_TYPE wstring_to_string(struct CharBuffer *string, const struct WCharBuffer *wstring) NODISCARD
+ERROR_TYPE string_to_string(struct CharBuffer *string, const struct WCharBuffer *wstring) NODISCARD
 {
     size_t size;
     PRET(string_internal_to_string(wstring->p, wstring->size, NULL, &size));
     PRET(char_buffer_resize(string, size + 1));
-    (void)string_internal_to_string(wstring->p, wstring->size, string->p, &size);
+    PIGNORE(string_internal_to_string(wstring->p, wstring->size, string->p, &size));
     string->p[size] = '\0';
     ERROR_RETURN_OK();
 }

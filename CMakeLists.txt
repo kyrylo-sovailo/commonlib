@@ -26,15 +26,17 @@ if("${COMPILER_STYLE}" STREQUAL "GNU")
     add_link_options(-Wl,--no-undefined)
 elseif("${COMPILER_STYLE}" STREQUAL "MSVC")
     add_compile_options(/Wall)
+    # Warnings that come out of nowhere:
     add_compile_options(/wd4668) #C4668: Macro is not defined as a preprocessor macro
-    add_compile_options(/wd4625) #C4625: Copy constructor was implicitly defined as deleted
-    add_compile_options(/wd4626) #C4626: Assignment operator was implicitly defined as deleted
-    add_compile_options(/wd4710) #C4710: Function not inlined
-    add_compile_options(/wd4711) #C4711: Selected for automatic inline expansion
     add_compile_options(/wd4820) #C4820: N bytes padding added after data member
-    add_compile_options(/wd4868) #C4868: Compiler may not enforce left-to-right evaluation order in braced initializer list
-    add_compile_options(/wd5039) #C5039: Pointer or reference to potentially throwing function passed to 'extern "C"
-    add_compile_options(/wd5045) #C5045: Compiler will insert Spectre mitigation for memory
+    add_compile_options(/wd5045) #C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+    
+    # Warnings about things that are not bugs but features:
+    add_compile_options(/wd4127) #C4127: Conditional expression is constant
+    add_compile_options(/wd4464) #C4464: Relative include path contains '..'
+    
+    # There are a lot more warnings (mostly security), but they are impossible to fix (MSVC analyzer is dumber than GCC) and Windows is not primary platform
+    # Therefore I decided that I don't care
 endif()
 if(WIN32)
     add_compile_definitions(WIN32)
@@ -108,7 +110,7 @@ endfunction()
 if("${COMPILER_STYLE}" STREQUAL "GNU")
     set(STANDARDS c89;c99;c23;c++98)
 else()
-    set(STANDARDS c)
+    set(STANDARDS c;cpp)
 endif()
 set(STYLES ERROR_DIE;ERROR_PRINT;ERROR_TRACE)
 
@@ -117,21 +119,18 @@ foreach(STANDARD IN LISTS STANDARDS)
     foreach(STYLE IN LISTS STYLES)
         string(SUBSTRING "${STYLE}" 6 1 STYLE_SUFFIX)
         string(TOLOWER "${STYLE_SUFFIX}" STYLE_SUFFIX)
-        if("${COMPILER_STYLE}" STREQUAL "GNU")
-            set(TARGET common_${STANDARD}${STYLE_SUFFIX})
-            if(${STANDARD} MATCHES "^c\\+\\+")
-                set(FORCE_CXX TRUE)
-            else()
-                set(FORCE_CXX FALSE)
-            endif()
+        set(TARGET common_${STANDARD}${STYLE_SUFFIX})
+        if(${STANDARD} MATCHES "^c\\+\\+|^cpp")
+            set(FORCE_CXX TRUE)
         else()
-            set(TARGET common_${STYLE_SUFFIX})
             set(FORCE_CXX FALSE)
         endif()
         
         if(FORCE_CXX)
             add_executable_relative(${TARGET} ${CXX_SOURCES})
-            target_compile_options(${TARGET} PRIVATE -Wno-error) #Seems to be a bug
+            if("${COMPILER_STYLE}" STREQUAL "GNU")
+                target_compile_options(${TARGET} PRIVATE -Wno-error) #Seems to be a bug
+            endif()
         else()
             add_executable_relative(${TARGET} ${SOURCES})
         endif()

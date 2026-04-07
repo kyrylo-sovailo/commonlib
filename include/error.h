@@ -81,8 +81,8 @@
 #define PRET2(EXPRESSION, FORMAT, A, B) { EXPRESSION; }
 #define PRET3(EXPRESSION, FORMAT, A, B, C) { EXPRESSION; }
 
-/* Ignores the result of expression when it is guaranteed to succeed */
-#define IGNORE(EXPRESSION) { EXPRESSION; }
+/* Ignores the result of expression when it is guaranteed to succeed (PIGNORE = propagate ignore) */
+#define PIGNORE(EXPRESSION) { EXPRESSION; }
 
 /* Prints error and dies */
 void error_internal_print_die(const char *format, ...) NORETURN PRINTFLIKE(1, 2);
@@ -141,8 +141,8 @@ void error_internal_print_die(const char *format, ...) NORETURN PRINTFLIKE(1, 2)
 #define PRET2(EXPRESSION, FORMAT, A, B) ARET2(EXPRESSION, FORMAT, A, B)
 #define PRET3(EXPRESSION, FORMAT, A, B, C) ARET3(EXPRESSION, FORMAT, A, B, C)
 
-/* Ignores the result of expression when it is guaranteed to succeed */
-#define IGNORE(EXPRESSION) { const bool check = EXPRESSION; if (check) {} else {} }
+/* Ignores the result of expression when it is guaranteed to succeed (PIGNORE = propagate ignore) */
+#define PIGNORE(EXPRESSION) { const bool check = EXPRESSION; if (check) {} else {} }
 
 /* Prints error */
 void error_internal_print(const char *format, ...) PRINTFLIKE(1, 2);
@@ -208,8 +208,8 @@ struct Error;
 #define PRET2(EXPRESSION, FORMAT, A, B) { struct Error *check = EXPRESSION; if (check != OK) return error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B); }
 #define PRET3(EXPRESSION, FORMAT, A, B, C) { struct Error *check = EXPRESSION; if (check != OK) return error_internal_allocate_append(check, ERROR_FORMAT_EF(#EXPRESSION, FORMAT), A, B, C); }
 
-/* Ignores the result of expression when it is guaranteed to succeed */
-#define IGNORE(EXPRESSION) { struct Error *check = EXPRESSION; if (check != OK) {} else {} }
+/* Ignores the result of expression when it is guaranteed to succeed (PIGNORE = propagate ignore) */
+#define PIGNORE(EXPRESSION) { struct Error *check = EXPRESSION; if (check != OK) {} else {} }
 
 /* Creates error (guaranteed to succeed) */
 struct Error *error_internal_allocate(const char *format, ...) NODISCARD PRINTFLIKE(1, 2);

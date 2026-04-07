@@ -233,13 +233,13 @@ bool path_absolute_mem(const char *path, size_t path_size)
 ERROR_TYPE path_get_working_directory(struct CharBuffer *path)
 {
     #ifdef WIN32
-        WCharBuffer wpath = ZERO_INIT;
+        struct WCharBuffer wpath = ZERO_INIT;
         DWORD wsize;
         ERROR_DECLARE();
         wsize = GetCurrentDirectoryW(0, NULL);
         PGOTO(wchar_buffer_resize(&wpath, wsize));
-        (void)GetCurrentDirectoryW(wsize, wpath->p);
-        PGOTO(string_to_string(&wpath, path));
+        (void)GetCurrentDirectoryW(wsize, wpath.p);
+        PGOTO(string_to_string(path, &wpath));
         wchar_buffer_finalize(&wpath);
         ERROR_RETURN_OK();
 
@@ -285,7 +285,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
             {
                 /* Trying to step up from directory ending in .. */
                 if (directory == path) { /* Do nothing */ }
-                else { PRET(string_reserve(directory, path->size + 3)); IGNORE(string_copy(directory, path)); }
+                else { PRET(string_reserve(directory, path->size + 3)); PIGNORE(string_copy(directory, path)); }
                 PRET(string_append_mem(directory, PATH_SEPARATOR_STR "..", 3));
             }
             else
@@ -303,7 +303,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
     {
         /* Trying to step up from .. */
         if (directory == path) { /* Do nothing */ }
-        else { PRET(string_reserve(directory, path->size + 3)); IGNORE(string_copy(directory, path)); }
+        else { PRET(string_reserve(directory, path->size + 3)); PIGNORE(string_copy(directory, path)); }
         PRET(string_append_mem(directory, PATH_SEPARATOR_STR "..", 3));
     }
     else
