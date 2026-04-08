@@ -371,6 +371,11 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
         else { PRET(string_reserve(directory, path->size + 3)); PIGNORE(string_copy(directory, path)); }
         PRET(string_append_mem(directory, PATH_SEPARATOR_STR "..", 3));
     }
+    else if (append_dotdot_if_dotdot && path->size == 0)
+    {
+        /* Trying to step up from "" */
+        PRET(string_copy_mem(directory, "..", 2));
+    }
     else
     {
         /* True basename */
