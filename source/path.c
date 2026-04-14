@@ -10,6 +10,9 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef COMMON_WCHAR
+    #include <wchar.h>
+#endif
 
 struct CharBuffer g_application = ZERO_INIT;
 struct CharBuffer g_directory = ZERO_INIT;
@@ -22,11 +25,11 @@ static const cchar_t *path_next_separator(const cchar_t *p, size_t size)
         const cchar_t *copy = p;
         for (copy = p; copy < p + size; copy++)
         {
-            if (*copy == '/' || *copy == '\\') { found = copy; break; }
+            if (*copy == COMMON_L('/') || *copy == COMMON_L('\\')) { found = copy; break; }
         }
         return found;
     #else
-        return (const cchar_t*)COMMON_W(memchr(p, '/', size));
+        return (const cchar_t*)COMMON_W(w,memchr(p, COMMON_L('/'), size));
     #endif
 }
 
@@ -35,24 +38,24 @@ static size_t path_root_size(const cchar_t *p, size_t size)
     #ifdef WIN32
         /* Path like C:\ */
         if (size >= 3
-        && ((p[0] >= 'a' && p[0] <= 'z') || (p[0] >= 'A' && p[0] <= 'Z'))
-        && p[1] == ':'
-        && (p[2] == '/' || p[2] == '\\'))
+        && ((p[0] >= COMMON_L('a') && p[0] <= COMMON_L('z')) || (p[0] >= COMMON_L('A') && p[0] <= COMMON_L('Z')))
+        && p[1] == COMMON_L(':')
+        && (p[2] == COMMON_L('/') || p[2] == COMMON_L('\\')))
         {
             return 3;
         }
 
         /* Path like \\.\ */
         else if (size >= 2
-        && (p[0] == '/' || p[0] == '\\')
-        && (p[1] == '/' || p[1] == '\\'))
+        && (p[0] == COMMON_L('/') || p[0] == COMMON_L('\\'))
+        && (p[1] == COMMON_L('/') || p[1] == COMMON_L('\\')))
         {
             const cchar_t *last_separator = path_next_separator(p + 2, size - 2);
             if (last_separator == NULL) return 2; /* Shouldn't happen actually */
             else return (size_t)(last_separator - p) + 1;
         }
     #else
-        if (size >= 1 && p[0] == '/') return 1;
+        if (size >= 1 && p[0] == COMMON_L('/')) return 1;
     #endif
     return 0;
 }
@@ -71,11 +74,11 @@ static ERROR_TYPE path_append_mem_noroot(struct CharBuffer *path, const cchar_t 
         {
             /* Double slash, do nothing */
         }
-        else if (part_size == 1 && COMMON_W(memcmp(p, COMMON_L("."), 1)) == 0)
+        else if (part_size == 1 && COMMON_W(w,memcmp(p, COMMON_L("."), 1)) == 0)
         {
             /* Dot, do nothing */
         }
-        else if (part_size == 2 && COMMON_W(memcmp(p, COMMON_L(".."), 2)) == 0)
+        else if (part_size == 2 && COMMON_W(w,memcmp(p, COMMON_L(".."), 2)) == 0)
         {
             /* Double dot, step back */
             PRET(path_get_directory(path, path, true));
@@ -118,7 +121,7 @@ ERROR_TYPE path_copy(struct CharBuffer *path, const struct CharBuffer *other)
 
 ERROR_TYPE path_copy_str(struct CharBuffer *path, const cchar_t *other)
 {
-    PRET(path_copy_mem(path, other, COMMON_W2(len(other))));
+    PRET(path_copy_mem(path, other, COMMON(str,wcs,len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -128,7 +131,7 @@ ERROR_TYPE path_copy_mem(struct CharBuffer *path, const cchar_t *other, size_t o
     #ifdef WIN32
         size_t i;
         PRET(string_resize(path, root_size));
-        for (i = 0; i < root_size; i++) path->p[i] = (other[i] == '/') ? '\\' : other[i];
+        for (i = 0; i < root_size; i++) path->p[i] = (other[i] == COMMON_L('/')) ? COMMON_L('\\') : other[i];
     #else
         PRET(string_copy_mem(path, other, root_size));
     #endif
@@ -146,7 +149,7 @@ ERROR_TYPE path_append(struct CharBuffer *path, const struct CharBuffer *other)
     {
         const cchar_t *found = path_next_separator(p, size);
         const size_t part_size = (found == NULL) ? size : (size_t)(found - p);
-        if (part_size == 2 && COMMON_W(memcmp(p, COMMON_L(".."), 2)) == 0)
+        if (part_size == 2 && COMMON_W(w,memcmp(p, COMMON_L(".."), 2)) == 0)
         {
             /* Double dot, step back */
             PRET(path_get_directory(path, path, true));
@@ -167,7 +170,7 @@ ERROR_TYPE path_append(struct CharBuffer *path, const struct CharBuffer *other)
 
 ERROR_TYPE path_append_str(struct CharBuffer *path, const cchar_t *other)
 {
-    PRET(path_append_mem(path, other, COMMON_W2(len(other))));
+    PRET(path_append_mem(path, other, COMMON(str,wcs,len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -233,7 +236,7 @@ bool path_absolute(const struct CharBuffer *path)
 
 bool path_absolute_str(const cchar_t *path)
 {
-    return path_absolute_mem(path, COMMON_W2(len(path)));
+    return path_absolute_mem(path, COMMON(str,wcs,len(path)));
 }
 
 bool path_absolute_mem(const cchar_t *path, size_t path_size)
@@ -244,34 +247,24 @@ bool path_absolute_mem(const cchar_t *path, size_t path_size)
 ERROR_TYPE path_get_executable_path(struct CharBuffer *path, int argc, cchar_t **argv)
 {
     #ifdef WIN32
-        struct WCharBuffer wpath = ZERO_INIT;
-        ERROR_DECLARE();
         (void)argc;
         (void)argv;
-        PRET(wchar_buffer_resize(&wpath, 256));
+        PRET(char_buffer_resize(path, 256));
         while (true)
         {
-            DWORD size = GetModuleFileNameW(NULL, wpath.p, (DWORD)wpath.size);
-            AGOTO(size != 0);
-            if (size == wpath.size)
+            DWORD size = GetModuleFileNameW(NULL, path->p, (DWORD)path->size);
+            ARET(size > 0);
+            if (size == path->size)
             {
-                PGOTO(wchar_buffer_resize(&wpath, 2 * wpath.size));
+                PRET(char_buffer_resize(path, 2 * path->size));
             }
             else
             {
-                wpath.size = size;
+                path->size = size;
                 break;
             }
         }
-        PGOTO(string_to_string(path, &wpath));
-        wchar_buffer_finalize(&wpath);
         ERROR_RETURN_OK();
-
-        #ifndef ERROR_DIE
-            failure:
-            wchar_buffer_finalize(&wpath);
-            ERROR_RETURN();
-        #endif
     #else
         ARET(argc > 0);
         ARET(argv[0] != NULL);
@@ -283,21 +276,10 @@ ERROR_TYPE path_get_executable_path(struct CharBuffer *path, int argc, cchar_t *
 ERROR_TYPE path_get_working_directory(struct CharBuffer *path)
 {
     #ifdef WIN32
-        struct WCharBuffer wpath = ZERO_INIT;
-        DWORD wsize;
-        ERROR_DECLARE();
-        wsize = GetCurrentDirectoryW(0, NULL);
-        PGOTO(wchar_buffer_resize(&wpath, wsize));
-        (void)GetCurrentDirectoryW(wsize, wpath.p);
-        PGOTO(string_to_string(path, &wpath));
-        wchar_buffer_finalize(&wpath);
+        size_t size = GetCurrentDirectoryW(0, NULL);
+        PRET(string_resize(path, size - 1));
+        (void)GetCurrentDirectoryW((DWORD)size, path->p);
         ERROR_RETURN_OK();
-
-        #ifndef ERROR_DIE
-            failure:
-            wchar_buffer_finalize(&wpath);
-            ERROR_RETURN();
-        #endif
     #else
         PRET(string_resize(path, 256));
         while (true)
@@ -308,11 +290,11 @@ ERROR_TYPE path_get_working_directory(struct CharBuffer *path)
             }
             else
             {
-                path->size = COMMON_W2(len(path->p));
+                path->size = COMMON(str,wcs,len(path->p));
                 break;
             }
         }
-        if (path->p[path->size - 1] == '/') { path->size--; path->p[path->size] = '\0'; }
+        if (path->p[path->size - 1] == COMMON_L('/')) { path->size--; path->p[path->size] = COMMON_L('\0'); }
         ERROR_RETURN_OK();
     #endif
 }
@@ -338,7 +320,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
                 /* Reached the root of absolute path */
                 RET();
             }
-            else if (append_dotdot_if_dotdot && path->size - size == 3 && COMMON_W(memcmp(path->p + size + 1, COMMON_L(".."), 2)) == 0)
+            else if (append_dotdot_if_dotdot && path->size - size == 3 && COMMON_W(w,memcmp(path->p + size + 1, COMMON_L(".."), 2)) == 0)
             {
                 /* Trying to step up from directory ending in .. */
                 if (directory == path) { /* Do nothing */ }
@@ -348,7 +330,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
             else
             {
                 /* Regular case, just delete directory */
-                if (directory == path) { directory->size = size; directory->p[size] = '\0'; }
+                if (directory == path) { directory->size = size; directory->p[size] = COMMON_L('\0'); }
                 else { PRET(string_copy_mem(directory, path->p, size)); }
             }
             ERROR_RETURN_OK();
@@ -356,7 +338,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
     }
 
     /* Relative path with no separators */
-    if (append_dotdot_if_dotdot && path->size == 2 && COMMON_W(memcmp(path->p, COMMON_L(".."), 2)) == 0)
+    if (append_dotdot_if_dotdot && path->size == 2 && COMMON_W(w,memcmp(path->p, COMMON_L(".."), 2)) == 0)
     {
         /* Trying to step up from .. */
         if (directory == path) { /* Do nothing */ }

@@ -20,7 +20,7 @@ static ERROR_TYPE test2(void)
     ERROR_RETURN_OK();
 }
 
-static ERROR_TYPE test3(int argc, char **argv)
+static ERROR_TYPE test3(int argc, cchar_t **argv)
 {
     ERROR_DECLARE();
     PGOTO(path_module_initialize(argc, argv));
@@ -74,9 +74,10 @@ static int common_main(int argc, cchar_t **argv)
 }
 
 #ifdef WIN32
-int main()
+int main(void)
 {
     int code = 1;
+    int argc;
     wchar_t **argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if (argv != NULL)
     {

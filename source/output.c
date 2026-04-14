@@ -8,7 +8,7 @@ void output_module_initialize(void)
 {
     /* Nothing to do */
 }
- 
+
 void output_module_finalize(void)
 {
     /* Nothing to do */
@@ -25,7 +25,7 @@ void output_close(bool error)
     fflush(error ? stderr : stdout);
 }
 
-void output_print(bool error, const char *format, ...)
+void output_print(bool error, const cchar_t* format, ...)
 {
     va_list va;
     va_start(va, format);
@@ -33,16 +33,16 @@ void output_print(bool error, const char *format, ...)
     va_end(va);
 }
 
-void output_vprint(bool error, const char *format, va_list va)
+void output_vprint(bool error, const cchar_t* format, va_list va)
 {
-    vfprintf(error ? stderr : stdout, format, va);
+    COMMON(vf,vfw,printf(error ? stderr : stdout, format, va));
 }
 
 void output_print_time(bool error)
 {
     time_t global_time;
-    struct tm *p_global_calender, global_calender;
-    struct tm *p_local_calender, local_calender;
+    struct tm* p_global_calender, global_calender;
+    struct tm* p_local_calender, local_calender;
     nchar_t calender_buffer[64];
 
     /* Print time */

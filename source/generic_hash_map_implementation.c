@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INVALID ((char*)0)
-#define DELETED ((char*)-1)
+#define INVALID ((cchar_t*)0)
+#define DELETED ((cchar_t*)-1)
 
-static size_t fnv1a(const char *key)
+static size_t fnv1a(const cchar_t *key)
 {
     /* http://www.isthe.com/chongo/tech/comp/fnv/ */
 
@@ -124,8 +124,8 @@ bool generic_hmap_valid(void *entry)
             { \
                 if (create) \
                 { \
-                    const size_t key_size = strlen(key) + 1; \
-                    char *new_key = (char*)malloc(key_size); \
+                    const size_t key_size = COMMON(str,wcs,len(key)) + 1; \
+                    cchar_t *new_key = (cchar_t*)malloc(key_size * sizeof(*new_key)); \
                     ARET(new_key != NULL); \
                     memcpy(new_key, key, key_size); \
                     POSITION_EXPRESSION->key = new_key; \
@@ -140,7 +140,7 @@ bool generic_hmap_valid(void *entry)
                 break; \
             } \
             else if (POSITION_EXPRESSION->key == DELETED /* Deleted */ \
-            || POSITION_EXPRESSION->hash != hash || strcmp(POSITION_EXPRESSION->key, key) != 0) /* Non-match */ \
+            || POSITION_EXPRESSION->hash != hash || COMMON(str,wcs,cmp(POSITION_EXPRESSION->key, key) != 0)) /* Non-match */ \
             { \
                 position = (position + 1) & mask; \
             } \
@@ -152,15 +152,15 @@ bool generic_hmap_valid(void *entry)
         ERROR_RETURN_OK(); \
     } \
 }
-ERROR_TYPE generic_hmap_access_1(void *hmap, const char *key, void *entry, bool create)
+ERROR_TYPE generic_hmap_access_1(void *hmap, const cchar_t *key, void *entry, bool create)
 IMPLEMENT_GENERIC_HASH_MAP_ACCESS(GenericByteHMap, sizeof(cast->p->p), (&cast->p[position]), (&new_p[new_position]))
-ERROR_TYPE generic_hmap_access_2(void *hmap, const char *key, void *entry, bool create)
+ERROR_TYPE generic_hmap_access_2(void *hmap, const cchar_t *key, void *entry, bool create)
 IMPLEMENT_GENERIC_HASH_MAP_ACCESS(GenericWordHMap, sizeof(cast->p->p), (&cast->p[position]), (&new_p[new_position]))
-ERROR_TYPE generic_hmap_access_4(void *hmap, const char *key, void *entry, bool create)
+ERROR_TYPE generic_hmap_access_4(void *hmap, const cchar_t *key, void *entry, bool create)
 IMPLEMENT_GENERIC_HASH_MAP_ACCESS(GenericDWordHMap, sizeof(cast->p->p), (&cast->p[position]), (&new_p[new_position]))
-ERROR_TYPE generic_hmap_access_8(void *hmap, const char *key, void *entry, bool create)
+ERROR_TYPE generic_hmap_access_8(void *hmap, const cchar_t *key, void *entry, bool create)
 IMPLEMENT_GENERIC_HASH_MAP_ACCESS(GenericQWordHMap, sizeof(cast->p->p), (&cast->p[position]), (&new_p[new_position]))
-ERROR_TYPE generic_hmap_access_n(void *hmap, const char *key, void *entry, bool create, size_t entry_sizeof)
+ERROR_TYPE generic_hmap_access_n(void *hmap, const cchar_t *key, void *entry, bool create, size_t entry_sizeof)
 IMPLEMENT_GENERIC_HASH_MAP_ACCESS(GenericByteHMap, entry_sizeof, ((struct GenericByteHMapEntry*)(((char*)cast->p) + position * entry_sizeof)), ((struct GenericByteHMapEntry*)(((char*)new_p) + new_position * entry_sizeof)))
 
 #define IMPLEMENT_GENERIC_HASH_MAP_DELETE(STRUCT_NAME, POSITION_EXPRESSION) \

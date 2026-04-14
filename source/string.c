@@ -95,7 +95,7 @@ ERROR_TYPE string_copy(struct CharBuffer *string, const struct CharBuffer *other
 
 ERROR_TYPE string_copy_str(struct CharBuffer *string, const cchar_t *other)
 {
-    PRET(string_copy_mem(string, other, strlen(other)));
+    PRET(string_copy_mem(string, other, COMMON(str,wcs,len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -130,7 +130,7 @@ ERROR_TYPE string_append(struct CharBuffer *string, const struct CharBuffer *oth
 
 ERROR_TYPE string_append_str(struct CharBuffer *string, const cchar_t *other)
 {
-    PRET(string_append_mem(string, other, strlen(other)));
+    PRET(string_append_mem(string, other, COMMON(str,wcs,len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -233,6 +233,12 @@ ENABLE_LONG_CHAR - enables lc and ls which may or may and compile, and may or ma
 #define ENABLE_EXTENSIONS
 #define ENABLE_LONG_CHAR
 
+#ifdef COMMON_WCHAR
+    #define END(STRING) (STRING->p + STRING->size), (size_t)(STRING->capacity - STRING->size)
+#else
+    #define END(STRING) (STRING->p + STRING->size)
+#endif
+
 #ifdef ERROR_TRACE
 ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, bool suppress_errors, const cchar_t *format, va_list va)
 #else
@@ -255,7 +261,7 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
     5. Print to buffer
     */
 
-    while (*format != '\0')
+    while (*format != COMMON_L('\0'))
     {
         Flag flags = 0;
         Length length = LENGTH_NONE;
@@ -269,8 +275,8 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
         int printed;
         
         /* Printing substring without percents */
-        const cchar_t *next_percent = COMMON_W(strchr(format, '%'));
-        const size_t length_without_percent = (next_percent == NULL) ? COMMON_W2(len(format)) : (size_t)(next_percent - format);
+        const cchar_t *next_percent = COMMON(str,wcs,chr(format, COMMON_L('%')));
+        const size_t length_without_percent = (next_percent == NULL) ? COMMON(str,wcs,len(format)) : (size_t)(next_percent - format);
         #if defined(ERROR_DIE)
             string_vprint_append_internal_reserve(string, length_without_percent);
         #elif defined(ERROR_PRINT)
@@ -279,7 +285,7 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             if (!string_vprint_append_internal_reserve(string, length_without_percent)) { if (suppress_errors) return PANIC; else RET(); }
         #endif
         memcpy(string->p + string->size, format, length_without_percent);
-        string->p[string->size + length_without_percent] = '\0';
+        string->p[string->size + length_without_percent] = COMMON_L('\0');
         string->size += length_without_percent;
         if (next_percent == NULL)
         {
@@ -289,7 +295,7 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
         
         /* Parse percent sign */
         format = next_percent + 1;
-        if (*format == '%')
+        if (*format == COMMON_L('%'))
         {
             /* Double percent, print % */
             #if defined(ERROR_DIE)
@@ -299,12 +305,12 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, 1)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            string->p[string->size] = '%';
-            string->p[string->size + 1] = '\0';
+            string->p[string->size] = COMMON_L('%');
+            string->p[string->size + 1] = COMMON_L('\0');
             string->size++;
             continue;
         }
-        format_copy[0] = '%';
+        format_copy[0] = COMMON_L('%');
 
         /* Parse flags */
         while (true)
@@ -313,11 +319,11 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             bool flag_present = true;
             switch (*format)
             {
-            case '#': new_flags |= FLAG_HASH; break;
-            case '0': new_flags |= FLAG_ZERO; break;
-            case '-': new_flags |= FLAG_MINUS; break;
-            case ' ': new_flags |= FLAG_SPACE; break;
-            case '+': new_flags |= FLAG_PLUS; break;
+            case COMMON_L('#'): new_flags |= FLAG_HASH; break;
+            case COMMON_L('0'): new_flags |= FLAG_ZERO; break;
+            case COMMON_L('-'): new_flags |= FLAG_MINUS; break;
+            case COMMON_L(' '): new_flags |= FLAG_SPACE; break;
+            case COMMON_L('+'): new_flags |= FLAG_PLUS; break;
             default: flag_present = false;
             }
             if (!flag_present) break;
@@ -327,7 +333,7 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
         }
 
         /* Parse width */
-        if (*format == '*')
+        if (*format == COMMON_L('*'))
         {
             const int signed_width = va_arg(va, int);
             if (signed_width >= 0) width = (unsigned int)signed_width;
@@ -335,40 +341,40 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             width_present = true;
             format++;
         }
-        else if ('0' <= *format && *format <= '9')
+        else if (COMMON_L('0') <= *format && *format <= COMMON_L('9'))
         {
             cchar_t *end;
-            width = (unsigned int)COMMON_W(strtoul(format, &end, 10));
+            width = (unsigned int)COMMON(str,wcs,toul(format, &end, 10));
             width_present = true;
             format = end;
         }
-        if (width_present) format_copy[++format_copy_size] = '*';
+        if (width_present) format_copy[++format_copy_size] = COMMON_L('*');
 
         /* Parse precision */
-        if (*format == '.')
+        if (*format == COMMON_L('.'))
         {
             format++;
-            if (*format == '*')
+            if (*format == COMMON_L('*'))
             {
                 const int signed_precision = va_arg(va, int);
                 if (signed_precision >= 0) { precision = (unsigned int)signed_precision; precision_present = true; }
                 format++;
             }
-            else if ('0' <= *format && *format <= '9')
+            else if (COMMON_L('0') <= *format && *format <= COMMON_L('9'))
             {
                 cchar_t *end;
-                precision = (unsigned int)COMMON_W(strtoul(format, &end, 10));
+                precision = (unsigned int)COMMON(str,wcs,toul(format, &end, 10));
                 precision_present = true;
                 format = end;
             }
         }
-        if (precision_present) format_copy[++format_copy_size] = '*';
+        if (precision_present) format_copy[++format_copy_size] = COMMON_L('*');
 
         /* Parse length */
         switch (*format)
         {
-        case 'h': length = (*(format + 1) == 'h') ? LENGTH_SHORT_SHORT : LENGTH_SHORT; break;
-        case 'l': length = (*(format + 1) == 'l') ? LENGTH_LONG_LONG : LENGTH_LONG; break;
+        case 'h': length = (*(format + 1) == COMMON_L('h')) ? LENGTH_SHORT_SHORT : LENGTH_SHORT; break;
+        case 'l': length = (*(format + 1) == COMMON_L('l')) ? LENGTH_LONG_LONG : LENGTH_LONG; break;
         case 'j': length = LENGTH_MAX; break;
         case 'z': length = LENGTH_SIZE; break;
         case 't': length = LENGTH_PTRDIFF; break;
@@ -380,7 +386,7 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
         /* Parse specifier */
         specifier = *format;
         format_copy[++format_copy_size] = specifier;
-        format_copy[++format_copy_size] = '\0';
+        format_copy[++format_copy_size] = COMMON_L('\0');
         format++;
 
         /* Print */
@@ -388,9 +394,8 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
         width_or_precision_present = width_present || precision_present;
         if (width_present) width_or_precision = width;
         if (precision_present) width_or_precision = precision;
-        if (specifier == 'c' && length == LENGTH_NONE)
+        if (specifier == COMMON_L('c') && length == LENGTH_NONE)
         {
-            cchar_t *end;
             const nchar_t value = (nchar_t)va_arg(va, /* nchar_t */ int);
             size_t estimated_size = 1;
             if (width_present && width > estimated_size) estimated_size = width;
@@ -401,15 +406,13 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, estimated_size)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            end = string->p + string->size;
-            if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-            else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-            else printed = COMMON_W(sprintf(end, format_copy, value));
+            if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+            else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+            else printed = COMMON(s,sw,printf(END(string), format_copy, value));
         }
         #ifdef ENABLE_LONG_CHAR
-        else if (specifier == 'c' && length == LENGTH_LONG)
+        else if (specifier == COMMON_L('c') && length == LENGTH_LONG)
         {
-            cchar_t *end;
             const wchar_t value = (wchar_t)va_arg(va, /* wchar_t */ int);
             size_t estimated_size = 1;
             if (width_present && width > estimated_size) estimated_size = width;
@@ -420,15 +423,13 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, estimated_size)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            end = string->p + string->size;
-            if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-            else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-            else printed = COMMON_W(sprintf(end, format_copy, value));
+            if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+            else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+            else printed = COMMON(s,sw,printf(END(string), format_copy, value));
         }
         #endif
-        else if (specifier == 's' && length == LENGTH_NONE)
+        else if (specifier == COMMON_L('s') && length == LENGTH_NONE)
         {
-            cchar_t *end;
             const nchar_t *value = va_arg(va, const nchar_t*);
             const size_t value_length = strlen(value);
             size_t estimated_size = value_length;
@@ -440,15 +441,13 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, estimated_size)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            end = string->p + string->size;
-            if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value)); /* TODO: implement re-encoding for cchar_t == wchar_t */
-            else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-            else printed = COMMON_W(sprintf(end, format_copy, value));
+            if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value)); /* TODO: implement re-encoding for cchar_t == wchar_t */
+            else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+            else printed = COMMON(s,sw,printf(END(string), format_copy, value));
         }
         #ifdef ENABLE_LONG_CHAR
-        else if (specifier == 's' && length == LENGTH_LONG)
+        else if (specifier == COMMON_L('s') && length == LENGTH_LONG)
         {
-            cchar_t *end;
             const wchar_t *value = va_arg(va, const wchar_t*);
             const size_t value_length = wcslen(value);
             size_t estimated_size = value_length;
@@ -460,13 +459,12 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, estimated_size)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            end = string->p + string->size;
-            if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value)); /* TODO: implement re-encoding for cchar_t == nchar_t */
-            else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-            else printed = COMMON_W(sprintf(end, format_copy, value));
+            if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value)); /* TODO: implement re-encoding for cchar_t == nchar_t */
+            else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+            else printed = COMMON(s,sw,printf(END(string), format_copy, value));
         }
         #endif
-        else if ((specifier == 'd' || specifier == 'i' || specifier == 'o' || specifier == 'x' || specifier == 'X' || specifier == 'u')
+        else if ((specifier == COMMON_L('d') || specifier == COMMON_L('i') || specifier == COMMON_L('o') || specifier == COMMON_L('x') || specifier == COMMON_L('X') || specifier == COMMON_L('u'))
             && (length == LENGTH_NONE || length == LENGTH_SHORT || length == LENGTH_LONG
             #ifdef ENABLE_LONG_LONG
             || length == LENGTH_LONG_LONG
@@ -477,7 +475,6 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             ))
         {
             /* 3 = log(8)/log(2). Skipping whole logarithm stuff. Also add 8 for safety */
-            cchar_t *end;
             size_t estimated_size = (8 * sizeof(size_t) / 3 + 8); if (precision_present) estimated_size += precision; /* Avoiding GCC bug */
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
@@ -487,64 +484,62 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, estimated_size)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            end = string->p + string->size;
             if (length == LENGTH_LONG)
             {
                 const long value = va_arg(va, long);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
             #ifdef ENABLE_LONG_LONG
             else if (length == LENGTH_LONG_LONG)
             {
                 const long long value = va_arg(va, long long);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
             #endif
             #ifdef ENABLE_EXTENSIONS
             else if (length == LENGTH_MAX)
             {
                 const intmax_t value = va_arg(va, intmax_t);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
             else if (length == LENGTH_SIZE)
             {
                 const size_t value = va_arg(va, size_t);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
             else if (length == LENGTH_PTRDIFF)
             {
                 const ptrdiff_t value = va_arg(va, ptrdiff_t);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
             #endif
             else
             {
                 /* shorts and short shorts also end up here*/
                 const int value = va_arg(va, int);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
         }
-        else if ((specifier == 'f' || specifier == 'e' || specifier == 'E' || specifier == 'g' || specifier == 'G'
+        else if ((specifier == COMMON_L('f') || specifier == COMMON_L('e') || specifier == COMMON_L('E') || specifier == COMMON_L('g') || specifier == COMMON_L('G')
             #ifdef ENABLE_EXTENSIONS
-            || specifier == 'F' || specifier == 'a' || specifier == 'A'
+            || specifier == COMMON_L('F') || specifier == COMMON_L('a') || specifier == COMMON_L('A')
             #endif
             )
             && (length == LENGTH_NONE || length == LENGTH_LONG_DOUBLE))
         {
             /* 512 is a WILD overestimate */
-            cchar_t *end;
             size_t estimated_size = 512 + (size_t)(precision_present ? precision : 0);
             if (width_present && width > estimated_size) estimated_size = width;
             #if defined(ERROR_DIE)
@@ -554,23 +549,22 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, estimated_size)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            end = string->p + string->size;
             if (length == LENGTH_LONG_DOUBLE)
             {
                 const long double value = va_arg(va, long double);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
             else
             {
                 const double value = va_arg(va, double);
-                if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, value));
-                else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, value));
-                else printed = COMMON_W(sprintf(end, format_copy, value));
+                if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, value));
+                else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, value));
+                else printed = COMMON(s,sw,printf(END(string), format_copy, value));
             }
         }
-        else if (specifier == 'n'
+        else if (specifier == COMMON_L('n')
             && (length == LENGTH_NONE || length == LENGTH_SHORT || length == LENGTH_LONG
             #ifdef ENABLE_LONG_LONG
             || length == LENGTH_LONG_LONG
@@ -626,9 +620,8 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             }
             printed = 0;
         }
-        else if (specifier == 'p' && length == LENGTH_NONE)
+        else if (specifier == COMMON_L('p') && length == LENGTH_NONE)
         {
-            cchar_t *end;
             const void *value = va_arg(va, const void*);
             const struct CharBuffer *cast = (const struct CharBuffer*)value;
             const cchar_t *cast_p = string_get(cast);
@@ -642,17 +635,16 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_
             #else
                 if (!string_vprint_append_internal_reserve(string, estimated_size)) { if (suppress_errors) return PANIC; else RET(); }
             #endif
-            end = string->p + string->size;
             #ifdef COMMON_WCHAR
-                format_copy[format_copy_size - 1] = 'l';
-                format_copy[format_copy_size    ] = 's';
-                format_copy[format_copy_size + 1] = '\0';
+                format_copy[format_copy_size - 1] = COMMON_L('l');
+                format_copy[format_copy_size    ] = COMMON_L('s');
+                format_copy[format_copy_size + 1] = COMMON_L('\0');
             #else
-                format_copy[format_copy_size - 1] = 's';
+                format_copy[format_copy_size - 1] = COMMON_L('s');
             #endif
-            if (width_and_precision_present) printed = COMMON_W(sprintf(end, format_copy, width, precision, cast_p));
-            else if (width_or_precision_present) printed = COMMON_W(sprintf(end, format_copy, width_or_precision, cast_p));
-            else printed = COMMON_W(sprintf(end, format_copy, cast_p));
+            if (width_and_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width, precision, cast_p));
+            else if (width_or_precision_present) printed = COMMON(s,sw,printf(END(string), format_copy, width_or_precision, cast_p));
+            else printed = COMMON(s,sw,printf(END(string), format_copy, cast_p));
         }
         #if defined(ERROR_TRACE)
         else if (suppress_errors) return PANIC; else { RET(); }
@@ -685,7 +677,7 @@ void string_trim(struct CharBuffer *string)
             return;
         }
         c = string->p[beginning_spaces];
-        if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v')) break;
+        if (!(c == COMMON_L(' ') || c == COMMON_L('\t') || c == COMMON_L('\n') || c == COMMON_L('\r') || c == COMMON_L('\v'))) break;
         beginning_spaces++;
     }
     
@@ -693,21 +685,21 @@ void string_trim(struct CharBuffer *string)
     while (true)
     {
         cchar_t c = string->p[string->size - ending_spaces - 1];
-        if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v')) break;
+        if (!(c == COMMON_L(' ') || c == COMMON_L('\t') || c == COMMON_L('\n') || c == COMMON_L('\r') || c == COMMON_L('\v'))) break;
         ending_spaces++;
     }
     
     /* Move */
     spaces = beginning_spaces + ending_spaces;
-    if (beginning_spaces > 0) COMMON_W(memmove(string->p, string->p + beginning_spaces, string->size - spaces));
+    if (beginning_spaces > 0) COMMON_W(w,memmove(string->p, string->p + beginning_spaces, string->size - spaces));
     string->size -= spaces;
-    string->p[string->size] = '\0';
+    string->p[string->size] = COMMON_L('\0');
 }
 
 ERROR_TYPE string_remove(struct CharBuffer *string, size_t begin, size_t size)
 {
     ARET(begin + size < string->size);
-    COMMON_W(memmove(string->p + begin, string->p + begin + size, string->size - begin - size + 1));
+    COMMON_W(w,memmove(string->p + begin, string->p + begin + size, string->size - begin - size + 1));
     string->size -= size;
     ERROR_RETURN_OK();
 }
@@ -720,7 +712,7 @@ ERROR_TYPE string_insert(struct CharBuffer *string, size_t begin, const struct C
 
 ERROR_TYPE string_insert_str(struct CharBuffer *string, size_t begin, const cchar_t *other)
 {
-    PRET(string_insert_mem(string, begin, other, strlen(other)));
+    PRET(string_insert_mem(string, begin, other, COMMON(str,wcs,len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -733,13 +725,13 @@ ERROR_TYPE string_insert_mem(struct CharBuffer *string, size_t begin, const ccha
         const size_t new_size = old_size + other_size;
         PRET(string_resize(string, new_size));
         segment_p = string->p + begin;
-        COMMON_W(memmove(segment_p + other_size, segment_p, old_size));
+        COMMON_W(w,memmove(segment_p + other_size, segment_p, old_size));
     }
     else
     {
         segment_p = string->p + begin;
     }
-    COMMON_W(memcpy(segment_p, other, other_size));
+    COMMON_W(w,memcpy(segment_p, other, other_size));
     ERROR_RETURN_OK();
 }
 
@@ -751,7 +743,7 @@ ERROR_TYPE string_replace(struct CharBuffer *string, size_t begin, size_t size, 
 
 ERROR_TYPE string_replace_str(struct CharBuffer *string, size_t begin, size_t size, const cchar_t *other)
 {
-    PRET(string_replace_mem(string, begin, size, other, strlen(other)));
+    PRET(string_replace_mem(string, begin, size, other, COMMON(str,wcs,len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -773,7 +765,7 @@ ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t si
         if (other_size < size)
         {
             /* Shrinking */
-            string->p[new_size] = '\0';
+            string->p[new_size] = COMMON_L('\0');
             string->size = new_size;
         }
     }
@@ -793,32 +785,31 @@ ERROR_TYPE nstring_to_wstring(const nchar_t *np, size_t nsize, wchar_t *wp, size
     while (nsize > 0)
     {
         /* Decode UTF-8 */
-        const unsigned nchar_t *cast = (const unsigned nchar_t*)np;
-        const unsigned nchar_t c = *cast;
+        const unsigned int nc = (unsigned int)*np;
         size_t symbol_size;
         unsigned int code;
-        if ((c & 0x80) == 0)
+        if ((nc & 0x80) == 0)
         {
+            code = nc;
             symbol_size = 1;
-            code = c;
         }
-        else if ((c & 0xE0) == 0xC0)
+        else if ((nc & 0xE0) == 0xC0)
         {
-            ARET(nsize >= 2 && (cast[1] & 0xC0) == 0x80);
+            ARET(nsize >= 2 && ((unsigned int)np[1] & 0xC0) == 0x80);
+            code = (unsigned int)(((nc & 0x1F) << 6) | ((unsigned int)np[1] & 0x3F));
             symbol_size = 2;
-            code = (unsigned int)(((c & 0x1F) << 6) | (cast[1] & 0x3F));
         }
-        else if ((c & 0xF0) == 0xE0)
+        else if ((nc & 0xF0) == 0xE0)
         {
-            ARET(nsize >= 3 && (cast[1] & 0xC0) == 0x80 && (cast[2] & 0xC0) == 0x80);
+            ARET(nsize >= 3 && ((unsigned int)np[1] & 0xC0) == 0x80 && ((unsigned int)np[2] & 0xC0) == 0x80);
+            code = (unsigned int)(((nc & 0x0F) << 12) | (((unsigned int)np[1] & 0x3F) << 6) | ((unsigned int)np[2] & 0x3F));
             symbol_size = 3;
-            code = (unsigned int)(((c & 0x0F) << 12) | ((cast[1] & 0x3F) << 6) | (cast[2] & 0x3F));
         }
-        else if ((c & 0xF8) == 0xF0)
+        else if ((nc & 0xF8) == 0xF0)
         {
-            ARET(nsize >= 4 && (cast[1] & 0xC0) == 0x80 && (cast[2] & 0xC0) == 0x80 && (cast[3] & 0xC0) == 0x80);
+            ARET(nsize >= 4 && ((unsigned int)np[1] & 0xC0) == 0x80 && ((unsigned int)np[2] & 0xC0) == 0x80 && ((unsigned int)np[3] & 0xC0) == 0x80);
+            code = (unsigned int)(((nc & 0x07) << 18) | (((unsigned int)np[1] & 0x3F) << 12) | (((unsigned int)np[2] & 0x3F) << 6) | ((unsigned int)np[3] & 0x3F));
             symbol_size = 4;
-            code = (unsigned int)(((c & 0x07) << 18) | ((cast[1] & 0x3F) << 12) | ((cast[2] & 0x3F) << 6) | (cast[3] & 0x3F));
         }
         else RET0("Invalid UTF-8 symbol");
         np += symbol_size;
@@ -827,7 +818,7 @@ ERROR_TYPE nstring_to_wstring(const nchar_t *np, size_t nsize, wchar_t *wp, size
         if (sizeof(wchar_t) > 2)
         {
             /* Encode UTF-32 */
-            if (wp != NULL) *wp = code;
+            if (wp != NULL) *wp = (wchar_t)code;
             symbol_size = 1;
         }
         else
@@ -860,27 +851,27 @@ ERROR_TYPE wstring_to_nstring(const wchar_t *wp, size_t wsize, nchar_t *np, size
     *nsize = 0;
     while (wsize > 0)
     {
+        const unsigned int wc = (unsigned int)*wp;
         unsigned int code;
         size_t symbol_size;
         if (sizeof(wchar_t) > 2)
         {
             /* Decode UTF-32 */
-            code = *wp;
+            code = wc;
             symbol_size = 1;
         }
         else
         {
             /* Decode UTF-16 */
-            unsigned nchar_t *cast = (unsigned nchar_t*)np;
-            if (!((unsigned int)*wp >= 0xD800 && (unsigned int)*wp < 0xE000))
+            if (!(wc >= 0xD800 && wc < 0xE000))
             {
                 code = (unsigned int)*wp;
                 symbol_size = 1;
             }
-            else if ((unsigned int)*wp >= 0xD800 && (unsigned int)*wp < 0xDC00)
+            else if (wc >= 0xD800 && wc < 0xDC00)
             {
                 ARET(wsize >= 2 && ((unsigned int)wp[1] >= 0xDC00 && (unsigned int)wp[1] < 0xE000));
-                code = ((((unsigned int)*wp - 0xD800) << 10) | ((unsigned int)wp[1] - 0xDC00)) + 0x10000;
+                code = (((wc - 0xD800) << 10) | ((unsigned int)wp[1] - 0xDC00)) + 0x10000;
                 symbol_size = 2;
             }
             else RET0("Invalid UTF-16 symbol");
@@ -892,36 +883,36 @@ ERROR_TYPE wstring_to_nstring(const wchar_t *wp, size_t wsize, nchar_t *np, size
         ARET(code < 0x110000);
         if (code < 0x80)
         {
-            if (cast != NULL) *cast = (unsigned nchar_t)code;
+            if (np != NULL) *np = (nchar_t)code;
             symbol_size = 1;
         }
         else if (code < 0x800)
         {
-            if (cast != NULL)
+            if (np != NULL)
             {
-                cast[0] = (unsigned nchar_t)(0xC0 | ((code >> 6) & 0x1F));
-                cast[1] = (unsigned nchar_t)(0x80 | (code & 0x3F));
+                np[0] = (nchar_t)(0xC0 | ((code >> 6) & 0x1F));
+                np[1] = (nchar_t)(0x80 | (code & 0x3F));
             }
             symbol_size = 2;
         }
         else if (code < 0x10000)
         {
-            if (cast != NULL)
+            if (np != NULL)
             {
-                cast[0] = (unsigned nchar_t)(0xE0 | ((code >> 12) & 0x0F));
-                cast[1] = (unsigned nchar_t)(0x80 | ((code >> 6) & 0x3F));
-                cast[2] = (unsigned nchar_t)(0x80 | (code & 0x3F));
+                np[0] = (nchar_t)(0xE0 | ((code >> 12) & 0x0F));
+                np[1] = (nchar_t)(0x80 | ((code >> 6) & 0x3F));
+                np[2] = (nchar_t)(0x80 | (code & 0x3F));
             }
             symbol_size = 3;
         }
         else
         {
-            if (cast != NULL)
+            if (np != NULL)
             {
-                cast[0] = (unsigned nchar_t)(0xE0 | ((code >> 18) & 0x07));
-                cast[1] = (unsigned nchar_t)(0x80 | ((code >> 12) & 0x3F));
-                cast[2] = (unsigned nchar_t)(0x80 | ((code >> 6) & 0x3F));
-                cast[3] = (unsigned nchar_t)(0x80 | (code & 0x3F));
+                np[0] = (nchar_t)(0xE0 | ((code >> 18) & 0x07));
+                np[1] = (nchar_t)(0x80 | ((code >> 12) & 0x3F));
+                np[2] = (nchar_t)(0x80 | ((code >> 6) & 0x3F));
+                np[3] = (nchar_t)(0x80 | (code & 0x3F));
             }
             symbol_size = 4;
         }

@@ -14,21 +14,23 @@ CCHAR = common character    (exists everywhere, defined differently)
     typedef char nchar_t;   /* Narrow */
     typedef wchar_t cchar_t;/* Common */
 
+    #define COMMON_L_INTERNAL(TEXT) L##TEXT
+
     #define COMMON_WCHAR
-    #define COMMON_W(FUNCTION) w##FUNCTION      /* Prefix for standard C string functions */
-    #define COMMON_W2(FUNCTION) wcs##FUNCTION   /* Prefix for standard C string functions */
-    #define COMMON_L(TEXT) L##TEXT              /* Prefix for text and characters */
-    #define COMMON_C L"%lc"                     /* Character-dependent formatting sequence for common character */
-    #define COMMON_S L"%ls"                     /* Character-dependent formatting sequence for common string */
-    #define COMMON_SEPARATOR L'\\'              /* Filesystem separator character */
-    #define COMMON_SEPARATOR_STR L"\\"          /* Filesystem separator string */
+    #define COMMON(NCHAR_PREFIX, WCHAR_PREFIX, FUNCTION) WCHAR_PREFIX##FUNCTION /* Prefix for standard C string functions (ternary) */
+    #define COMMON_W(WCHAR_PREFIX, FUNCTION) WCHAR_PREFIX##FUNCTION             /* Prefix for standard C string functions (binary) */
+    #define COMMON_L(TEXT) COMMON_L_INTERNAL(TEXT)  /* Prefix for text and characters */
+    #define COMMON_C L"%lc"                         /* Character-dependent formatting sequence for common character */
+    #define COMMON_S L"%ls"                         /* Character-dependent formatting sequence for common string */
+    #define COMMON_SEPARATOR L'\\'                  /* Filesystem separator character */
+    #define COMMON_SEPARATOR_STR L"\\"              /* Filesystem separator string */
 #else
                             /* Wide   */
     typedef char nchar_t;   /* Narrow */
     typedef char cchar_t;   /* Common */
 
-    #define COMMON_W(FUNCTION) FUNCTION
-    #define COMMON_W2(FUNCTION) str##FUNCTION
+    #define COMMON(NCHAR_PREFIX, WCHAR_PREFIX, FUNCTION) NCHAR_PREFIX##FUNCTION
+    #define COMMON_W(WCHAR_PREFIX, FUNCTION) FUNCTION
     #define COMMON_L(TEXT) TEXT
     #define COMMON_C "%c"
     #define COMMON_S "%s"

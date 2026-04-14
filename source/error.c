@@ -35,7 +35,7 @@ void error_internal_print(const cchar_t *format, ...)
     if (g_error_print_number == 0)
     {
         /* First error, print header */
-        const char *message;
+        const cchar_t *message;
         if (g_application.p == NULL) message = COMMON_L("APPLICATION NULL");
         else message = g_application.p;
         output_open(true);
@@ -162,7 +162,7 @@ int error_get_exit_code(const struct Error *error)
         p_number_begin = p_end - 1;
         while (p_number_begin - 1 > error->message.p && *(p_number_begin - 1) >= '0' && *(p_number_begin - 1) <= '9') p_number_begin--; /* Skip number */
         if (!(*p_number_begin >= '0' && *p_number_begin <= '9')) { p_end = p_number_begin - 1; continue; } /* No number found */
-        line = strtoul(p_number_begin, &p_number_end, 10);
+        line = COMMON(str,wcs,toul(p_number_begin, &p_number_end, 10));
         if (p_number_end != p_end) { p_end = p_number_begin - 1; continue; } /* Number invalid */
         return (int)line;
     }
@@ -225,7 +225,7 @@ void error_print(const struct Error *error)
 
     /* Print time */
     output_print_time(true);
-    output_print(true, "\n");
+    output_print(true, COMMON_L("\n"));
     output_close(true);
 }
 
