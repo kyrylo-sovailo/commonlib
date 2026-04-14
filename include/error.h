@@ -2,27 +2,28 @@
 #define COMMONLIB_ERROR_H
 
 #include "bool.h"
+#include "char.h"
 #include "macro.h"
 
 /*#define ERROR_EMBED_ARGUMENTS*/ /* Store file and line as a part of the message (increases file size) */
 #define ERROR_INCLUDE_EXPRESSION /* Include boolean expression in the trace */
 
 #ifdef ERROR_EMBED_ARGUMENTS
-    #define ERROR_FORMAT() __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Error"
-    #define ERROR_FORMAT_F(FORMAT) __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Message: " FORMAT
+    #define ERROR_FORMAT() COMMON_L(__RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Error")
+    #define ERROR_FORMAT_F(FORMAT) COMMON_L(__RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Message: " FORMAT)
     #ifdef ERROR_INCLUDE_EXPRESSION
-        #define ERROR_FORMAT_E(EXPRESSION) __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed"
-        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) __BASENAME_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed. Message: " FORMAT
+        #define ERROR_FORMAT_E(EXPRESSION) COMMON_L(__RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed")
+        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) COMMON_L(__RELATIVE_FILE__ ":" ERROR_STRINGIZE_LINE ": Condition `" EXPRESSION "' failed. Message: " FORMAT)
     #else
         #define ERROR_FORMAT_E(EXPRESSION) ERROR_FORMAT()
         #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) ERROR_FORMAT_F(FORMAT)
     #endif
 #else
-    #define ERROR_FORMAT() "%s:%d: Error", __BASENAME_FILE__, __LINE__
-    #define ERROR_FORMAT_F(FORMAT) "%s:%d: Message: " FORMAT, __BASENAME_FILE__, __LINE__
+    #define ERROR_FORMAT() COMMON_S COMMON_L(":%d: Error"), COMMON_L(__RELATIVE_FILE__), __LINE__
+    #define ERROR_FORMAT_F(FORMAT) COMMON_S COMMON_L(":%d: Message: " FORMAT), COMMON_L(__RELATIVE_FILE__), __LINE__
     #ifdef ERROR_INCLUDE_EXPRESSION
-        #define ERROR_FORMAT_E(EXPRESSION) "%s:%d: Condition `%s' failed", __BASENAME_FILE__, __LINE__, EXPRESSION
-        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) "%s:%d: Condition `%s' failed. Message: " FORMAT, __BASENAME_FILE__, __LINE__, EXPRESSION
+        #define ERROR_FORMAT_E(EXPRESSION) COMMON_S COMMON_L(":%d: Condition `") COMMON_S COMMON_L("' failed"), COMMON_L(__RELATIVE_FILE__), __LINE__, COMMON_L(EXPRESSION)
+        #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) COMMON_S COMMON_L(":%d: Condition `") COMMON_S COMMON_L("' failed. Message: " FORMAT), COMMON_L(__RELATIVE_FILE__), __LINE__, COMMON_L(EXPRESSION)
     #else
         #define ERROR_FORMAT_E(EXPRESSION) ERROR_FORMAT()
         #define ERROR_FORMAT_EF(EXPRESSION, FORMAT) ERROR_FORMAT_F(FORMAT)
@@ -85,7 +86,7 @@
 #define PIGNORE(EXPRESSION) { EXPRESSION; }
 
 /* Prints error and dies */
-void error_internal_print_die(const char *format, ...) NORETURN PRINTFLIKE(1, 2);
+void error_internal_print_die(const cchar_t *format, ...) NORETURN PRINTFLIKE(1, 2);
 
 #endif /* #ifdef ERROR_DIE */
 
@@ -145,7 +146,7 @@ void error_internal_print_die(const char *format, ...) NORETURN PRINTFLIKE(1, 2)
 #define PIGNORE(EXPRESSION) { const bool check = EXPRESSION; if (check) {} else {} }
 
 /* Prints error */
-void error_internal_print(const char *format, ...) PRINTFLIKE(1, 2);
+void error_internal_print(const cchar_t *format, ...) PRINTFLIKE(1, 2);
 
 /* Ends error printing */
 void error_print_close(void);
@@ -212,10 +213,10 @@ struct Error;
 #define PIGNORE(EXPRESSION) { struct Error *check = EXPRESSION; if (check != OK) {} else {} }
 
 /* Creates error (guaranteed to succeed) */
-struct Error *error_internal_allocate(const char *format, ...) NODISCARD PRINTFLIKE(1, 2);
+struct Error *error_internal_allocate(const cchar_t *format, ...) NODISCARD PRINTFLIKE(1, 2);
 
 /* Appends error to an existing error (guaranteed to succeed) */
-struct Error *error_internal_allocate_append(struct Error *error, const char *format, ...) NODISCARD PRINTFLIKE(2, 3);
+struct Error *error_internal_allocate_append(struct Error *error, const cchar_t *format, ...) NODISCARD PRINTFLIKE(2, 3);
 
 /* Gets error code to be returned by application (guaranteed to succeed) */
 int error_get_exit_code(const struct Error *error);

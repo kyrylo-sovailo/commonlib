@@ -2,24 +2,25 @@
 #include "../include/output.h"
 #include "../include/path.h"
 
+#ifdef WIN32
+    #include <Windows.h>
+    #include <shellapi.h>
+#endif
+
 #include <stdio.h>
 
-ERROR_TYPE test1(void) NODISCARD;
-ERROR_TYPE test2(void) NODISCARD;
-ERROR_TYPE test3(int argc, char **argv) NODISCARD;
-
-ERROR_TYPE test1(void)
+static ERROR_TYPE test1(void)
 {
     RET0("Hello error handling");
 }
 
-ERROR_TYPE test2(void)
+static ERROR_TYPE test2(void)
 {
     PRET(test1());
     ERROR_RETURN_OK();
 }
 
-ERROR_TYPE test3(int argc, char **argv)
+static ERROR_TYPE test3(int argc, char **argv)
 {
     ERROR_DECLARE();
     PGOTO(path_module_initialize(argc, argv));
@@ -34,7 +35,7 @@ ERROR_TYPE test3(int argc, char **argv)
     #endif
 }
 
-int main(int argc, char **argv)
+static int common_main(int argc, cchar_t **argv)
 {
     #if defined(ERROR_DIE)
         int code = 0;
@@ -71,3 +72,22 @@ int main(int argc, char **argv)
 
     return code;
 }
+
+#ifdef WIN32
+int main()
+{
+    int code = 1;
+    wchar_t **argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    if (argv != NULL)
+    {
+        code = common_main(argc, argv);
+        LocalFree(argv);
+    }
+    return code;
+}
+#else
+int main(int argc, char **argv)
+{
+    return common_main(argc, argv);
+}
+#endif

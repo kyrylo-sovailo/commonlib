@@ -34,7 +34,7 @@ bool FUNCTION_NAME ## valid(struct STRUCT_NAME ## Entry *entry) \
 }
 
 #define IMPLEMENT_HASH_MAP_ACCESS(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-ERROR_TYPE FUNCTION_NAME ## access(struct STRUCT_NAME *hmap, const char *key, struct STRUCT_NAME ## Entry **entry, bool create) \
+ERROR_TYPE FUNCTION_NAME ## access(struct STRUCT_NAME *hmap, const cchar_t *key, struct STRUCT_NAME ## Entry **entry, bool create) \
 { \
     ERROR_DECLARE(); \
     switch (sizeof(hmap->p->p)) \
@@ -72,11 +72,11 @@ void generic_hmap_finalize_n(void *hmap, size_t entry_sizeof);
 
 bool generic_hmap_valid(void *entry);
 
-ERROR_TYPE generic_hmap_access_1(void *hmap, const char *key, void *entry, bool create);
-ERROR_TYPE generic_hmap_access_2(void *hmap, const char *key, void *entry, bool create);
-ERROR_TYPE generic_hmap_access_4(void *hmap, const char *key, void *entry, bool create);
-ERROR_TYPE generic_hmap_access_8(void *hmap, const char *key, void *entry, bool create);
-ERROR_TYPE generic_hmap_access_n(void *hmap, const char *key, void *entry, bool create, size_t entry_sizeof);
+ERROR_TYPE generic_hmap_access_1(void *hmap, const cchar_t *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_2(void *hmap, const cchar_t *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_4(void *hmap, const cchar_t *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_8(void *hmap, const cchar_t *key, void *entry, bool create);
+ERROR_TYPE generic_hmap_access_n(void *hmap, const cchar_t *key, void *entry, bool create, size_t entry_sizeof);
 
 void generic_hmap_delete_1(void *hmap, void *entry);
 void generic_hmap_delete_2(void *hmap, void *entry);

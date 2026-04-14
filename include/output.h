@@ -1,6 +1,8 @@
 #ifndef COMMONLIB_OUTPUT_H
 #define COMMONLIB_OUTPUT_H
 
+#include "bool.h"
+#include "char.h"
 #include "macro.h"
 
 #include <stdarg.h>
@@ -10,19 +12,19 @@
 void output_module_initialize(void);
 void output_module_finalize(void);
 
-/* Opens error output (guaranteed to succeed) */
-void output_open(void);
+/* Opens normal/error output (guaranteed to succeed) */
+void output_open(bool error);
 
-/* Closes error output (guaranteed to succeed) */
-void output_close(void);
+/* Closes normal/error output (guaranteed to succeed) */
+void output_close(bool error);
 
-/* Writes message to error output (guaranteed to succeed) */
-void output_print(const char *format, ...) PRINTFLIKE(1, 2);
+/* Writes message to normal/error output (guaranteed to succeed) */
+void output_print(bool error, const cchar_t *format, ...) PRINTFLIKE(2, 3);
 
-/* Writes message to error output (guaranteed to succeed) */
-void output_vprint(const char *format, va_list va) PRINTFLIKE(1, 0);
+/* Writes message to normal/error output (guaranteed to succeed) */
+void output_vprint(bool error, const cchar_t *format, va_list va) PRINTFLIKE(2, 0);
 
-/* Write timestamp to error output (guaranteed to succeed) */
-void output_print_time(void);
+/* Write timestamp to normal/error output (guaranteed to succeed) */
+void output_print_time(bool error);
 
 #endif

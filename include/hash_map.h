@@ -15,7 +15,7 @@
 struct STRUCT_NAME ## Entry \
 { \
     size_t hash; \
-    char *key; \
+    cchar_t *key; \
     TYPE p; \
 }; \
 struct STRUCT_NAME \
@@ -33,7 +33,7 @@ void FUNCTION_NAME ## finalize(struct STRUCT_NAME *map);
 #define DECLARE_HASH_MAP_VALID(TYPE, STRUCT_NAME, FUNCTION_NAME) \
 bool FUNCTION_NAME ## valid(struct STRUCT_NAME ## Entry *entry);
 #define DECLARE_HASH_MAP_ACCESS(TYPE, STRUCT_NAME, FUNCTION_NAME) \
-ERROR_TYPE FUNCTION_NAME ## access(struct STRUCT_NAME *map, const char *key, struct STRUCT_NAME ## Entry **entry, bool create) NODISCARD; /* Primary function, others are wrappers */
+ERROR_TYPE FUNCTION_NAME ## access(struct STRUCT_NAME *map, const cchar_t *key, struct STRUCT_NAME ## Entry **entry, bool create) NODISCARD; /* Primary function, others are wrappers */
 #define DECLARE_HASH_MAP_DELETE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
 void FUNCTION_NAME ## delete(struct STRUCT_NAME *map, struct STRUCT_NAME ## Entry *entry); /* Secondary function, others are wrappers */
 
