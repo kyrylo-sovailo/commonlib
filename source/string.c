@@ -51,7 +51,7 @@ const cchar_t *string_get(const struct CharBuffer *string)
 
 void string_zero(struct CharBuffer *string)
 {
-    if (string->p != NULL) string->p[0] = '\0';
+    if (string->p != NULL) string->p[0] = COMMON_L('\0');
     string->size = 0;
 }
 
@@ -68,7 +68,7 @@ ERROR_TYPE string_resize(struct CharBuffer *string, size_t size)
         string->p = new_p;
     }
     string->size = size;
-    string->p[size] = '\0';
+    string->p[size] = COMMON_L('\0');
     ERROR_RETURN_OK();
 }
 
@@ -118,7 +118,7 @@ ERROR_TYPE string_push(struct CharBuffer *string, cchar_t other)
     }
     string->p[string->size] = other;
     string->size++;
-    string->p[string->size] = '\0';
+    string->p[string->size] = COMMON_L('\0');
     ERROR_RETURN_OK();
 }
 

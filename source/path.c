@@ -308,33 +308,32 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
     while (size > 0)
     {
         size--;
-        if (path->p[size] == COMMON_SEPARATOR)
+        if (path->p[size] != COMMON_SEPARATOR) continue;
+
+        /* Reached separator in absolute or relative path */
+        #ifdef WIN32
+        if (root_size > 0 && size == root_size - 1)
+        #else
+        if (size == 0)
+        #endif
         {
-            /* Reached separator in absolute or relative path */
-            #ifdef WIN32
-            if (root_size > 0 && size == root_size - 1)
-            #else
-            if (size == 0)
-            #endif
-            {
-                /* Reached the root of absolute path */
-                RET();
-            }
-            else if (append_dotdot_if_dotdot && path->size - size == 3 && COMMON_W(w,memcmp(path->p + size + 1, COMMON_L(".."), 2)) == 0)
-            {
-                /* Trying to step up from directory ending in .. */
-                if (directory == path) { /* Do nothing */ }
-                else { PRET(string_reserve(directory, path->size + 3)); PIGNORE(string_copy(directory, path)); }
-                PRET(string_append_mem(directory, COMMON_SEPARATOR_STR COMMON_L(".."), 3));
-            }
-            else
-            {
-                /* Regular case, just delete directory */
-                if (directory == path) { directory->size = size; directory->p[size] = COMMON_L('\0'); }
-                else { PRET(string_copy_mem(directory, path->p, size)); }
-            }
-            ERROR_RETURN_OK();
+            /* Reached the root of absolute path */
+            RET();
         }
+        else if (append_dotdot_if_dotdot && path->size - size == 3 && COMMON_W(w,memcmp(path->p + size + 1, COMMON_L(".."), 2)) == 0)
+        {
+            /* Trying to step up from directory ending in .. */
+            if (directory == path) { /* Do nothing */ }
+            else { PRET(string_reserve(directory, path->size + 3)); PIGNORE(string_copy(directory, path)); }
+            PRET(string_append_mem(directory, COMMON_SEPARATOR_STR COMMON_L(".."), 3));
+        }
+        else
+        {
+            /* Regular case, just delete directory */
+            if (directory == path) { directory->size = size; directory->p[size] = COMMON_L('\0'); }
+            else { PRET(string_copy_mem(directory, path->p, size)); }
+        }
+        ERROR_RETURN_OK();
     }
 
     /* Relative path with no separators */
@@ -364,13 +363,12 @@ ERROR_TYPE path_get_basename(struct CharBuffer *basename, const struct CharBuffe
     while (size > 0)
     {
         size--;
-        if (path->p[size] == COMMON_SEPARATOR)
-        {
-            /* Reached separator in absolute or relative path */
-            if (basename == path) { PRET(string_replace_mem(basename, 0, size + 1, NULL, 0)); }
-            else { PRET(string_copy_mem(basename, path->p + size + 1, path->size - size - 1)); }
-            ERROR_RETURN_OK();
-        }
+        if (path->p[size] != COMMON_SEPARATOR) continue;
+        
+        /* Reached separator in absolute or relative path */
+        if (basename == path) { PRET(string_replace_mem(basename, 0, size + 1, NULL, 0)); }
+        else { PRET(string_copy_mem(basename, path->p + size + 1, path->size - size - 1)); }
+        ERROR_RETURN_OK();
     }
 
     /* Relative path with no separators, aka already basename */
