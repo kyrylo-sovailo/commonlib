@@ -122,7 +122,7 @@ ERROR_TYPE string_copy_str(struct CharBuffer *string, const cchar_t *other)
 ERROR_TYPE string_copy_mem(struct CharBuffer *string, const cchar_t *other, size_t other_size)
 {
     PRET(string_resize(string, other_size));
-    memcpy(string->p, other, other_size);
+    COMMON_W(memcpy(string->p, other, other_size));
     ERROR_RETURN_OK();
 }
 
@@ -158,7 +158,7 @@ ERROR_TYPE string_append_mem(struct CharBuffer *string, const cchar_t *other, si
 {
     const size_t old_size = string->size;
     PRET(string_resize(string, string->size + other_size));
-    memcpy(string->p + old_size, other, other_size);
+    COMMON_W(memcpy(string->p + old_size, other, other_size));
     ERROR_RETURN_OK();
 }
 
@@ -291,7 +291,7 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, bool suppres
         const cchar_t *next_percent = COMMON_WCS(chr(format, COMMON_L('%')));
         const size_t length_without_percent = (next_percent == NULL) ? COMMON_WCS(len(format)) : (size_t)(next_percent - format);
         SOFT_ARET(string_vprint_append_internal_reserve(string, length_without_percent));
-        memcpy(string->p + string->size, format, length_without_percent);
+        COMMON_W(memcpy(string->p + string->size, format, length_without_percent));
         string->p[string->size + length_without_percent] = COMMON_L('\0');
         string->size += length_without_percent;
         if (next_percent == NULL)
@@ -711,7 +711,7 @@ ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t si
             PRET(string_resize(string, new_size));
         }
         segment_p = string->p + begin;
-        memmove(segment_p + other_size, segment_p + size, old_size - size);
+        COMMON_W(memmove(segment_p + other_size, segment_p + size, old_size - size));
         if (other_size < size)
         {
             /* Shrinking */
@@ -723,7 +723,7 @@ ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t si
     {
         segment_p = string->p + begin;
     }
-    memcpy(segment_p, other, other_size);
+    COMMON_W(memcpy(segment_p, other, other_size));
     ERROR_RETURN_OK();
 }
 
