@@ -24,6 +24,11 @@ void string_finalize(struct CharBuffer *string);
 /* Gets raw C string */
 const cchar_t *string_get(const struct CharBuffer *string);
 
+/* Gets whether string is ASCII */
+bool string_is_ascii(const struct CharBuffer *string);
+bool string_is_ascii_str(const cchar_t *string);
+bool string_is_ascii_mem(const cchar_t *string, size_t size);
+
 /* Sets the size to zero */
 void string_zero(struct CharBuffer *string);
 
@@ -51,11 +56,7 @@ ERROR_TYPE string_print(struct CharBuffer *string, const cchar_t *format, ...) N
 ERROR_TYPE string_vprint(struct CharBuffer *string, const cchar_t *format, va_list va) NODISCARD PRINTFLIKE(2, 0);
 ERROR_TYPE string_print_append(struct CharBuffer *string, const cchar_t *format, ...) NODISCARD PRINTFLIKE(2, 3);
 ERROR_TYPE string_vprint_append(struct CharBuffer *string, const cchar_t *format, va_list va) NODISCARD PRINTFLIKE(2, 0);
-#ifdef ERROR_TRACE
 ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, bool suppress_errors, const cchar_t *format, va_list va) NODISCARD PRINTFLIKE(3, 0);
-#else
-ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, const cchar_t *format, va_list va) NODISCARD PRINTFLIKE(2, 0);
-#endif
 
 /* Removes beginning at trailing spaces from string */
 void string_trim(struct CharBuffer *string);

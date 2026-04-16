@@ -73,12 +73,12 @@ static int common_main(int argc, cchar_t **argv)
     return code;
 }
 
-#ifdef WIN32
+#if defined(WIN32) && defined(UNICODE)
 int main(void)
 {
     int code = 1;
     int argc;
-    wchar_t **argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    cchar_t **argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if (argv != NULL)
     {
         code = common_main(argc, argv);

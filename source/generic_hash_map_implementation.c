@@ -3,9 +3,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef COMMON_WCHAR
+    #include <wchar.h>
+#endif
 
 #define INVALID ((cchar_t*)0)
 #define DELETED ((cchar_t*)-1)
+
+static size_t make_number(unsigned short a48, unsigned short a32, unsigned short a16, unsigned short a0)
+{
+    size_t number = a48;
+    number <<= 16;
+    number |= a32;
+    number <<= 16;
+    number |= a16;
+    number <<= 16;
+    number |= a0;
+    return number;
+}
 
 static size_t fnv1a(const cchar_t *key)
 {
@@ -14,13 +29,17 @@ static size_t fnv1a(const cchar_t *key)
     size_t prime, value;
     if (sizeof(size_t) == 8)
     {
-        prime = 256;        prime <<= 32; prime |= 435;         /* 1099511628211        = 256        * 2^32 + 435        */
-        value = 3421674724; value <<= 32; value |= 2216829733;  /* 14695981039346656037 = 3421674724 * 2^32 + 2216829733 */
+        /* 1099511628211 */
+        prime = make_number(0, 256, 0, 435);
+        /* 14695981039346656037 */
+        value = make_number(52210, 40164, 33826, 8997);
     }
     else
     {
-        prime = 16777619;
-        value = 2166136261;
+        /* 16777619 */
+        prime = make_number(0, 0, 256, 403);
+        /* 2166136261 */
+        value = make_number(0, 0, 33052, 40389);
     }
     
     for (; *key != '\0'; key++)
@@ -124,10 +143,10 @@ bool generic_hmap_valid(void *entry)
             { \
                 if (create) \
                 { \
-                    const size_t key_size = COMMON(str,wcs,len(key)) + 1; \
+                    const size_t key_size = COMMON_WCS(len(key)) + 1; \
                     cchar_t *new_key = (cchar_t*)malloc(key_size * sizeof(*new_key)); \
                     ARET(new_key != NULL); \
-                    memcpy(new_key, key, key_size); \
+                    COMMON_W(memcpy(new_key, key, key_size)); \
                     POSITION_EXPRESSION->key = new_key; \
                     POSITION_EXPRESSION->hash = hash; \
                     cast->size++; \
@@ -140,7 +159,7 @@ bool generic_hmap_valid(void *entry)
                 break; \
             } \
             else if (POSITION_EXPRESSION->key == DELETED /* Deleted */ \
-            || POSITION_EXPRESSION->hash != hash || COMMON(str,wcs,cmp(POSITION_EXPRESSION->key, key) != 0)) /* Non-match */ \
+            || POSITION_EXPRESSION->hash != hash || COMMON_WCS(cmp(POSITION_EXPRESSION->key, key) != 0)) /* Non-match */ \
             { \
                 position = (position + 1) & mask; \
             } \

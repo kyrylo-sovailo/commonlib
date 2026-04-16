@@ -38,8 +38,12 @@ elseif("${COMPILER_STYLE}" STREQUAL "MSVC")
     add_compile_options(/wd4127) #C4127: Conditional expression is constant
     add_compile_options(/wd4464) #C4464: Relative include path contains '..'
     
-    # There are a lot more warnings (mostly security), but they are impossible to fix (MSVC analyzer is dumber than GCC) and Windows is not primary platform
-    # Therefore I decided that I don't care
+    # Warnings that appear because MSVC isn't as smart as GCC
+    # It may hide valid warnings, but I decide to hide them because otherwise I risk missing more important warnings
+    add_compile_options(/wd4244) #C4244: conversion from '<unnamed-enum>' to '<type>', possible loss of data
+    add_compile_options(/wd4701) #C4701: Potentially uninitialized local variable used
+    add_compile_options(/wd4774) #C4774: Format string expected in argument is not a string literal
+    add_compile_options(/wd4996) #C4996: This function or variable may be unsafe
 endif()
 if(WIN32)
     add_compile_definitions(WIN32)
@@ -125,32 +129,42 @@ if("${COMPILER_STYLE}" STREQUAL "GNU")
 else()
     set(STANDARDS c;cpp)
 endif()
+if(WIN32)
+    set(CHARACTERS n;w)
+else()
+    set(CHARACTERS n)
+endif()
 set(STYLES ERROR_DIE;ERROR_PRINT;ERROR_TRACE)
 
 # Compile all
 foreach(STANDARD IN LISTS STANDARDS)
     foreach(STYLE IN LISTS STYLES)
-        string(SUBSTRING "${STYLE}" 6 1 STYLE_SUFFIX)
-        string(TOLOWER "${STYLE_SUFFIX}" STYLE_SUFFIX)
-        set(TARGET common_${STANDARD}${STYLE_SUFFIX})
-        if(${STANDARD} MATCHES "^c\\+\\+|^cpp")
-            set(FORCE_CXX TRUE)
-        else()
-            set(FORCE_CXX FALSE)
-        endif()
-        
-        if(FORCE_CXX)
-            add_executable_relative(${TARGET} ${CXX_SOURCES})
-            if("${COMPILER_STYLE}" STREQUAL "GNU")
-                target_compile_options(${TARGET} PRIVATE -Wno-error) #Seems to be a bug
+        foreach(CHARACTER IN LISTS CHARACTERS)
+            # Get target name
+            string(SUBSTRING "${STYLE}" 6 1 STYLE_SUFFIX)
+            string(TOLOWER "${STYLE_SUFFIX}" STYLE_SUFFIX)
+            set(TARGET common_${STANDARD}${STYLE_SUFFIX}${CHARACTER})
+            
+            # Standard
+            if("${STANDARD}" MATCHES "^c\\+\\+|^cpp")
+                add_executable_relative(${TARGET} ${CXX_SOURCES})
+                if("${COMPILER_STYLE}" STREQUAL "GNU")
+                    target_compile_options(${TARGET} PRIVATE -Wno-error) #Seems to be a bug
+                endif()
+            else()
+                add_executable_relative(${TARGET} ${SOURCES})
             endif()
-        else()
-            add_executable_relative(${TARGET} ${SOURCES})
-        endif()
-        
-        if("${COMPILER_STYLE}" STREQUAL "GNU")
-            target_compile_options(${TARGET} PRIVATE -std=${STANDARD})
-        endif()
-        target_compile_definitions(${TARGET} PRIVATE ${STYLE})
+            if("${COMPILER_STYLE}" STREQUAL "GNU")
+                target_compile_options(${TARGET} PRIVATE -std=${STANDARD})
+            endif()
+            
+            # Character
+            if("${CHARACTER}" STREQUAL "w")
+                target_compile_definitions(${TARGET} PRIVATE UNICODE)
+            endif()
+            
+            # Style
+            target_compile_definitions(${TARGET} PRIVATE ${STYLE})
+        endforeach()
     endforeach()
 endforeach()

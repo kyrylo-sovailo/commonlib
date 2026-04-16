@@ -162,7 +162,7 @@ int error_get_exit_code(const struct Error *error)
         p_number_begin = p_end - 1;
         while (p_number_begin - 1 > error->message.p && *(p_number_begin - 1) >= '0' && *(p_number_begin - 1) <= '9') p_number_begin--; /* Skip number */
         if (!(*p_number_begin >= '0' && *p_number_begin <= '9')) { p_end = p_number_begin - 1; continue; } /* No number found */
-        line = COMMON(str,wcs,toul(p_number_begin, &p_number_end, 10));
+        line = COMMON_WCS(toul(p_number_begin, &p_number_end, 10));
         if (p_number_end != p_end) { p_end = p_number_begin - 1; continue; } /* Number invalid */
         return (int)line;
     }
@@ -177,7 +177,7 @@ void error_print(const struct Error *error)
     if (g_application.p == NULL) message = COMMON_L("APPLICATION NULL");
     else message = g_application.p;
     output_open(true);
-    output_print(true, COMMON_S COMMON_L(":\n"), message);
+    output_print(true, COMMON_S2("", ":\n"), message);
 
     /* Print error */
     if (error == OK)
@@ -217,7 +217,7 @@ void error_print(const struct Error *error)
             if (error == PANIC) message = COMMON_L("ERROR PANIC");
             else if (error_i->message.p == NULL) message = COMMON_L("ERROR NULL");
             else message = error_i->message.p;
-            output_print(true, COMMON_L("%d. ") COMMON_S COMMON_L("\n"), error_number, message);
+            output_print(true, COMMON_S2("%d. ", "\n"), error_number, message);
             if (error_i == PANIC) break;
             error_i = error_i->next;
         }

@@ -29,7 +29,7 @@ static const cchar_t *path_next_separator(const cchar_t *p, size_t size)
         }
         return found;
     #else
-        return (const cchar_t*)COMMON_W(w,memchr(p, COMMON_L('/'), size));
+        return (const cchar_t*)COMMON_W(memchr(p, COMMON_L('/'), size));
     #endif
 }
 
@@ -74,11 +74,11 @@ static ERROR_TYPE path_append_mem_noroot(struct CharBuffer *path, const cchar_t 
         {
             /* Double slash, do nothing */
         }
-        else if (part_size == 1 && COMMON_W(w,memcmp(p, COMMON_L("."), 1)) == 0)
+        else if (part_size == 1 && COMMON_W(memcmp(p, COMMON_L("."), 1)) == 0)
         {
             /* Dot, do nothing */
         }
-        else if (part_size == 2 && COMMON_W(w,memcmp(p, COMMON_L(".."), 2)) == 0)
+        else if (part_size == 2 && COMMON_W(memcmp(p, COMMON_L(".."), 2)) == 0)
         {
             /* Double dot, step back */
             PRET(path_get_directory(path, path, true));
@@ -121,7 +121,7 @@ ERROR_TYPE path_copy(struct CharBuffer *path, const struct CharBuffer *other)
 
 ERROR_TYPE path_copy_str(struct CharBuffer *path, const cchar_t *other)
 {
-    PRET(path_copy_mem(path, other, COMMON(str,wcs,len(other))));
+    PRET(path_copy_mem(path, other, COMMON_WCS(len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -149,7 +149,7 @@ ERROR_TYPE path_append(struct CharBuffer *path, const struct CharBuffer *other)
     {
         const cchar_t *found = path_next_separator(p, size);
         const size_t part_size = (found == NULL) ? size : (size_t)(found - p);
-        if (part_size == 2 && COMMON_W(w,memcmp(p, COMMON_L(".."), 2)) == 0)
+        if (part_size == 2 && COMMON_W(memcmp(p, COMMON_L(".."), 2)) == 0)
         {
             /* Double dot, step back */
             PRET(path_get_directory(path, path, true));
@@ -170,7 +170,7 @@ ERROR_TYPE path_append(struct CharBuffer *path, const struct CharBuffer *other)
 
 ERROR_TYPE path_append_str(struct CharBuffer *path, const cchar_t *other)
 {
-    PRET(path_append_mem(path, other, COMMON(str,wcs,len(other))));
+    PRET(path_append_mem(path, other, COMMON_WCS(len(other))));
     ERROR_RETURN_OK();
 }
 
@@ -212,11 +212,7 @@ ERROR_TYPE path_vprint_append(struct CharBuffer *path, const cchar_t *format, va
 {
     struct CharBuffer other = ZERO_INIT;
     ERROR_DECLARE();
-    #ifdef ERROR_TRACE
-        ERROR_ASSIGN(string_internal_vprint_append(&other, false, format, va));
-    #else
-        ERROR_ASSIGN(string_internal_vprint_append(&other, format, va));
-    #endif
+    ERROR_ASSIGN(string_internal_vprint_append(&other, false, format, va));
     PGOTO(path_append_mem(path, other.p, other.size)); /* Append as unformatted string. Yes, it is inefficient. I don't care. */
     string_finalize(&other);
     ERROR_RETURN_OK();
@@ -236,7 +232,7 @@ bool path_absolute(const struct CharBuffer *path)
 
 bool path_absolute_str(const cchar_t *path)
 {
-    return path_absolute_mem(path, COMMON(str,wcs,len(path)));
+    return path_absolute_mem(path, COMMON_WCS(len(path)));
 }
 
 bool path_absolute_mem(const cchar_t *path, size_t path_size)
@@ -252,7 +248,7 @@ ERROR_TYPE path_get_executable_path(struct CharBuffer *path, int argc, cchar_t *
         PRET(char_buffer_resize(path, 256));
         while (true)
         {
-            DWORD size = GetModuleFileNameW(NULL, path->p, (DWORD)path->size);
+            DWORD size = GetModuleFileName(NULL, path->p, (DWORD)path->size);
             ARET(size > 0);
             if (size == path->size)
             {
@@ -278,7 +274,7 @@ ERROR_TYPE path_get_working_directory(struct CharBuffer *path)
     #ifdef WIN32
         size_t size = GetCurrentDirectoryW(0, NULL);
         PRET(string_resize(path, size - 1));
-        (void)GetCurrentDirectoryW((DWORD)size, path->p);
+        (void)GetCurrentDirectory((DWORD)size, path->p);
         ERROR_RETURN_OK();
     #else
         PRET(string_resize(path, 256));
@@ -290,7 +286,7 @@ ERROR_TYPE path_get_working_directory(struct CharBuffer *path)
             }
             else
             {
-                path->size = COMMON(str,wcs,len(path->p));
+                path->size = COMMON_WCS(len(path->p));
                 break;
             }
         }
@@ -320,7 +316,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
             /* Reached the root of absolute path */
             RET();
         }
-        else if (append_dotdot_if_dotdot && path->size - size == 3 && COMMON_W(w,memcmp(path->p + size + 1, COMMON_L(".."), 2)) == 0)
+        else if (append_dotdot_if_dotdot && path->size - size == 3 && COMMON_W(memcmp(path->p + size + 1, COMMON_L(".."), 2)) == 0)
         {
             /* Trying to step up from directory ending in .. */
             if (directory == path) { /* Do nothing */ }
@@ -337,7 +333,7 @@ ERROR_TYPE path_get_directory(struct CharBuffer *directory, const struct CharBuf
     }
 
     /* Relative path with no separators */
-    if (append_dotdot_if_dotdot && path->size == 2 && COMMON_W(w,memcmp(path->p, COMMON_L(".."), 2)) == 0)
+    if (append_dotdot_if_dotdot && path->size == 2 && COMMON_W(memcmp(path->p, COMMON_L(".."), 2)) == 0)
     {
         /* Trying to step up from .. */
         if (directory == path) { /* Do nothing */ }
