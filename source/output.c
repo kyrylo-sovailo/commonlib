@@ -140,19 +140,20 @@ void output_vprint_color(bool error_output, ccolor_t color, const cchar_t *forma
         output_vprint(error_output, format, va);
         SetConsoleTextAttribute(info->handle, info->info.wAttributes);
     #else
-        output_print(error_output, "%s", color);
+        output_print(error_output, COMMON_S, color);
         output_vprint(error_output, format, va);
-        output_print(error_output, "\033[0m");
+        output_print(error_output, COMMON_L("\x1b[0m"));
     #endif
 }
 
 void output_print_time(bool error_output)
 {
+    cchar_t calender_buffer[64];
+    const size_t size = sizeof(calender_buffer) / sizeof(*calender_buffer);
     struct tm global_calender, local_calender;
-    nchar_t calender_buffer[64];
     if (!get_calender(time(NULL), &global_calender, &local_calender)) return;
-    strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S GMT", &global_calender); /* Hardcode GMT because Windows identified it incorrectly */
-    output_print(error_output, COMMON_L("%s\n"), calender_buffer);
-    strftime(calender_buffer, sizeof(calender_buffer), "%a, %d %b %Y %H:%M:%S %Z", &local_calender);
-    output_print(error_output, COMMON_L("%s\n"), calender_buffer);
+    COMMON_WCS(ftime(calender_buffer, size, COMMON_L("%a, %d %b %Y %H:%M:%S GMT"), &global_calender)); /* Hardcode GMT because Windows identified it incorrectly */
+    output_print(error_output, COMMON_S COMMON_N, calender_buffer);
+    COMMON_WCS(ftime(calender_buffer, size, COMMON_L("%a, %d %b %Y %H:%M:%S %Z"), &local_calender));
+    output_print(error_output, COMMON_S COMMON_N, calender_buffer);
 }

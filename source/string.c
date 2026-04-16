@@ -46,7 +46,7 @@ void string_finalize(struct CharBuffer *string)
 
 const cchar_t *string_get(const struct CharBuffer *string)
 {
-    return (string->p == NULL) ? COMMON_L("") : string->p;
+    return (string->p == NULL) ? COMMON_E : string->p;
 }
 
 bool string_is_ascii(const struct CharBuffer *string)

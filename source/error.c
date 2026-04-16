@@ -17,7 +17,7 @@ void error_internal_print_die(const cchar_t *format, ...)
     va_start(va, format);
     output_vprint(true, format, va);
     va_end(va);
-    output_print(true, COMMON_L("\n"));
+    output_print(true, COMMON_N);
     output_print_time(true);
     output_close(true);
     exit(1); /*TODO: get meaningful code*/
@@ -39,18 +39,18 @@ void error_internal_print(const cchar_t *format, ...)
         if (g_application.p == NULL) message = COMMON_L("APPLICATION NULL");
         else message = g_application.p;
         output_open(true);
-        output_print(true, COMMON_S COMMON_L(":\n"), message);
+        output_print(true, COMMON_S COMMON_L(":") COMMON_N, message);
         va_start(va, format);
         output_vprint(true, format, va);
         va_end(va);
-        output_print(true, COMMON_L("\n" "Traceback (most recent call first):\n"));
+        output_print(true, COMMON_N COMMON_L("Traceback (most recent call first):") COMMON_N);
     }
     g_error_print_number++;
     output_print(true, COMMON_L("%d. "), g_error_print_number);
     va_start(va, format);
     output_vprint(true, format, va);
     va_end(va);
-    output_print(true, COMMON_L("\n"));
+    output_print(true, COMMON_N);
 
     /* User is responsible for calling error_print_close() */
 }
@@ -59,7 +59,7 @@ void error_print_close(void)
 {
     g_error_print_number = 0;
     output_print_time(true);
-    output_print(true, COMMON_L("\n"));
+    output_print(true, COMMON_N);
     output_close(true);
 }
 
@@ -177,16 +177,16 @@ void error_print(const struct Error *error)
     if (g_application.p == NULL) message = COMMON_L("APPLICATION NULL");
     else message = g_application.p;
     output_open(true);
-    output_print(true, COMMON_S2("", ":\n"), message);
+    output_print(true, COMMON_S COMMON_L(":") COMMON_N, message);
 
     /* Print error */
     if (error == OK)
     {
-        output_print(true, COMMON_L("ERROR OK\n"));
+        output_print(true, COMMON_L("ERROR OK") COMMON_N);
     }
     else if (error == PANIC)
     {
-        output_print(true, COMMON_L("ERROR PANIC\n"));
+        output_print(true, COMMON_L("ERROR PANIC") COMMON_N);
     }
     else
     {
@@ -204,10 +204,10 @@ void error_print(const struct Error *error)
         if (error == PANIC) message = COMMON_L("ERROR PANIC");
         else if (error_i->message.p == NULL) message = COMMON_L("ERROR NULL");
         else message = error_i->message.p;
-        output_print(true, COMMON_S COMMON_L("\n"), message);
+        output_print(true, COMMON_S COMMON_N, message);
 
         /* Print traceback */
-        output_print(true, COMMON_L("Traceback (most recent call last):\n"));
+        output_print(true, COMMON_L("Traceback (most recent call last):") COMMON_N);
         error_number = 0;
         error_i = error;
         while (true)
@@ -217,7 +217,7 @@ void error_print(const struct Error *error)
             if (error == PANIC) message = COMMON_L("ERROR PANIC");
             else if (error_i->message.p == NULL) message = COMMON_L("ERROR NULL");
             else message = error_i->message.p;
-            output_print(true, COMMON_S2("%d. ", "\n"), error_number, message);
+            output_print(true, COMMON_L("%d. ") COMMON_S COMMON_N, error_number, message);
             if (error_i == PANIC) break;
             error_i = error_i->next;
         }
@@ -225,7 +225,7 @@ void error_print(const struct Error *error)
 
     /* Print time */
     output_print_time(true);
-    output_print(true, COMMON_L("\n"));
+    output_print(true, COMMON_N);
     output_close(true);
 }
 

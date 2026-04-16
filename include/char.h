@@ -37,6 +37,8 @@ CCHAR = common character    (exists everywhere, defined differently)
 #define COMMON_VFW(FUNCTION) COMMON_TERNARY(vf, vfw, FUNCTION)
 
 /* Sequences */
+#define COMMON_E COMMON_L("")
+
 #define COMMON_C COMMON_L("%") COMMON_LONG COMMON_L("c")        /* %c or %lc */
 #define COMMON_NC COMMON_L("%.*") COMMON_LONG COMMON_L("c")     /* %.*c or %.*lc */
 #define COMMON_QC COMMON_L("%'") COMMON_LONG COMMON_L("c'")     /* '%.*c' or '%.*lc' */
@@ -50,13 +52,15 @@ CCHAR = common character    (exists everywhere, defined differently)
 #define COMMON_S2(STRING1, STRING2) COMMON_L(STRING1) COMMON_S COMMON_L(STRING2)
 #define COMMON_S3(STRING1, STRING2, STRING3) COMMON_L(STRING1) COMMON_S COMMON_L(STRING2) COMMON_S COMMON_L(STRING3)
 
-/* Separators */
+/* OS-dependent */
 #if defined(WIN32)
     #define COMMON_SEPARATOR COMMON_L('\\')
     #define COMMON_SEPARATOR_STR COMMON_L("\\")
+    #define COMMON_N COMMON_L("\r\n")
 #else
     #define COMMON_SEPARATOR COMMON_L('/')
     #define COMMON_SEPARATOR_STR COMMON_L("/")
+    #define COMMON_N COMMON_L("\n")
 #endif
 
 #endif
