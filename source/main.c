@@ -9,9 +9,15 @@
 
 #include <stdio.h>
 
-static ERROR_TYPE test1(void)
+static ERROR_TYPE test0(void)
 {
     RET0("Hello error handling");
+}
+
+static ERROR_TYPE test1(void)
+{
+    PRET(test0());
+    ERROR_RETURN_OK();
 }
 
 static ERROR_TYPE test2(void)
@@ -20,19 +26,10 @@ static ERROR_TYPE test2(void)
     ERROR_RETURN_OK();
 }
 
-static ERROR_TYPE test3(int argc, cchar_t **argv)
+static ERROR_TYPE test3(void)
 {
-    ERROR_DECLARE();
-    PGOTO(path_module_initialize(argc, argv));
-    PGOTO(test2());
-    path_module_finalize();
+    PRET(test2());
     ERROR_RETURN_OK();
-
-    #ifndef ERROR_DIE
-        failure:
-        path_module_finalize();
-        ERROR_RETURN();
-    #endif
 }
 
 static int common_main(int argc, cchar_t **argv)
@@ -49,9 +46,13 @@ static int common_main(int argc, cchar_t **argv)
 
     output_module_initialize();
     #if defined(ERROR_DIE)
-        test3(argc, argv);
+        path_module_initialize(argc, argv);
+        test3();
     #elif defined(ERROR_PRINT)
-        success = test3(argc, argv);
+        PGOTO(path_module_initialize(argc, argv));
+        PGOTO(test3());
+        success = true;
+        failure:
         if (!success)
         {
             error_print_close();
@@ -59,7 +60,10 @@ static int common_main(int argc, cchar_t **argv)
             code = 1;
         }
     #else
-        error = test3(argc, argv);
+        PGOTO(path_module_initialize(argc, argv));
+        PGOTO(test3());
+        error = OK;
+        failure:
         if (error != OK)
         {
             error_print(error);
@@ -68,6 +72,7 @@ static int common_main(int argc, cchar_t **argv)
             error_finalize(error);
         }
     #endif
+    path_module_finalize();
     output_module_finalize();
 
     return code;

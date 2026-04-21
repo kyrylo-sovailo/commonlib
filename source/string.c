@@ -437,13 +437,13 @@ ERROR_TYPE string_internal_vprint_append(struct CharBuffer *string, bool suppres
                 size_t estimated_size;
                 const nchar_t *np = va_arg(va, const nchar_t*);
                 size_t nsize; /* Precision assumed to apply to original encoding, target assumed to apply to target encoding */
-                if (precision != precision_invalid) { const nchar_t *null = memchr(np, '\0', precision); nsize = (null != NULL) ? (size_t)(null - np) : precision; }
+                if (precision != precision_invalid) { const nchar_t *null = (nchar_t*)memchr(np, '\0', precision); nsize = (null != NULL) ? (size_t)(null - np) : precision; }
                 else nsize = strlen(np);
                 PRET(string_internal_to_wstring(np, nsize, NULL, &estimated_size, true));
                 value = (wchar_t*)malloc((estimated_size + 1) * sizeof(*value));
                 SOFT_ARET(value != NULL);
                 value[estimated_size] = '\0';
-                PIGNORE(string_internal_to_nstring(np, nsize, value, &estimated_size, true));
+                PIGNORE(string_internal_to_wstring(np, nsize, value, &estimated_size, true));
             #else
                 const nchar_t *value = va_arg(va, const nchar_t*);
                 size_t estimated_size = (precision != precision_invalid) ? precision : strlen(value);    

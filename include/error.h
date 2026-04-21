@@ -96,7 +96,7 @@ void error_internal_print_die(const cchar_t *format, ...) NORETURN PRINTFLIKE(1,
 #define ERROR_TYPE bool
 #define ERROR_DECLARE() bool success
 #define ERROR_ASSIGN(EXPRESSION) success = EXPRESSION
-#define ERROR_RETURN() { PRET(success); return true; }
+#define ERROR_RETURN() return success
 #define ERROR_RETURN_VERBATIM() return success
 #define ERROR_RETURN_OK() return true
 
@@ -163,7 +163,7 @@ struct Error;
 #define ERROR_TYPE struct Error*
 #define ERROR_DECLARE() struct Error *error
 #define ERROR_ASSIGN(EXPRESSION) error = EXPRESSION
-#define ERROR_RETURN() { PRET(error); return OK; }
+#define ERROR_RETURN() return error
 #define ERROR_RETURN_VERBATIM() return error
 #define ERROR_RETURN_OK() return OK
 

@@ -208,7 +208,7 @@ ERROR_TYPE path_append(struct CharBuffer *path, const struct CharBuffer *other)
         size = size - part_size - 1;
     }
     #ifdef WIN32
-        PRET(path_prepand_remove_long_root(path, root_size));
+        PRET(path_prepand_remove_long_root(path, path_root_size(path->p, path->size)));
     #endif
     ERROR_RETURN_OK();
 }

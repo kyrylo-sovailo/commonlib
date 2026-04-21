@@ -104,7 +104,7 @@ struct Error *error_internal_allocate_append(struct Error *error, const cchar_t 
         /* Print */
         const struct Error zero = ZERO_INIT;
         va_list va;
-        *error = zero;
+        *new_error = zero;
         va_start(va, format);
         if (string_internal_vprint_append(&new_error->message, true, format, va)) {}
         va_end(va);
@@ -120,7 +120,7 @@ struct Error *error_internal_allocate_append(struct Error *error, const cchar_t 
         if (error == NULL) return PANIC; /* Shouldn't normally happen. Should I "if (!error) return error;" at the beginning? */
         if (error == PANIC) return PANIC; /* Not much can be done */
         
-        /* Go to the last allocated error and set it to PANIC */
+        /* Go to the first allocated error and set it to PANIC for it to print correctly */
         error_i = error;
         while (true)
         {
