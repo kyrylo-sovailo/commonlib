@@ -74,11 +74,9 @@ ERROR_TYPE string_replace(struct CharBuffer *string, size_t begin, size_t size, 
 ERROR_TYPE string_replace_str(struct CharBuffer *string, size_t begin, size_t size, const cchar_t *other) NODISCARD;
 ERROR_TYPE string_replace_mem(struct CharBuffer *string, size_t begin, size_t size, const cchar_t *other, size_t other_size) NODISCARD;
 
-#ifdef WIN32
-
-ERROR_TYPE nstring_to_wstring(const nchar_t *np, size_t nsize, wchar_t *wp, size_t *wsize) NODISCARD;
-ERROR_TYPE wstring_to_nstring(const wchar_t *wp, size_t wsize, nchar_t *np, size_t *nsize) NODISCARD;
-
-#endif
+ERROR_TYPE string_to_wstring(const nchar_t *np, size_t nsize, wchar_t *wp, size_t *wsize) NODISCARD;
+ERROR_TYPE string_to_nstring(const wchar_t *wp, size_t wsize, nchar_t *np, size_t *nsize) NODISCARD;
+ERROR_TYPE string_internal_to_wstring(const nchar_t *np, size_t nsize, wchar_t *wp, size_t *wsize, bool suppress_errors) NODISCARD;
+ERROR_TYPE string_internal_to_nstring(const wchar_t *wp, size_t wsize, nchar_t *np, size_t *nsize, bool suppress_errors) NODISCARD;
 
 #endif
