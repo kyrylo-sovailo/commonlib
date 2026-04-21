@@ -9,23 +9,27 @@
 
 #include <stdio.h>
 
+static ERROR_TYPE test0(void) NODISCARD;
 static ERROR_TYPE test0(void)
 {
     RET0("Hello error handling");
 }
 
+static ERROR_TYPE test1(void) NODISCARD;
 static ERROR_TYPE test1(void)
 {
     PRET(test0());
     ERROR_RETURN_OK();
 }
 
+static ERROR_TYPE test2(void) NODISCARD;
 static ERROR_TYPE test2(void)
 {
     PRET(test1());
     ERROR_RETURN_OK();
 }
 
+static ERROR_TYPE test3(void) NODISCARD;
 static ERROR_TYPE test3(void)
 {
     PRET(test2());

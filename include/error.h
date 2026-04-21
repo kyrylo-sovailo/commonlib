@@ -37,7 +37,6 @@
 #define ERROR_DECLARE()
 #define ERROR_ASSIGN(EXPRESSION) EXPRESSION
 #define ERROR_RETURN() return
-#define ERROR_RETURN_VERBATIM() return
 #define ERROR_RETURN_OK() return
 
 /* Assigns 'error' variable and goes to 'failure' label (GOTO = goto) */
@@ -97,7 +96,6 @@ void error_internal_print_die(const cchar_t *format, ...) NORETURN PRINTFLIKE(1,
 #define ERROR_DECLARE() bool success
 #define ERROR_ASSIGN(EXPRESSION) success = EXPRESSION
 #define ERROR_RETURN() return success
-#define ERROR_RETURN_VERBATIM() return success
 #define ERROR_RETURN_OK() return true
 
 /* Assigns 'error' variable and goes to 'failure' label (GOTO = goto) */
@@ -164,7 +162,6 @@ struct Error;
 #define ERROR_DECLARE() struct Error *error
 #define ERROR_ASSIGN(EXPRESSION) error = EXPRESSION
 #define ERROR_RETURN() return error
-#define ERROR_RETURN_VERBATIM() return error
 #define ERROR_RETURN_OK() return OK
 
 /* Assigns 'error' variable and goes to 'failure' label (GOTO = goto) */

@@ -45,7 +45,7 @@ ERROR_TYPE FUNCTION_NAME ## access(struct STRUCT_NAME *hmap, const cchar_t *key,
     case 8: ERROR_ASSIGN(generic_hmap_access_8(hmap, key, entry, create)); break; \
     default: ERROR_ASSIGN(generic_hmap_access_n(hmap, key, entry, create, sizeof(*hmap->p))); break; \
     } \
-    ERROR_RETURN_VERBATIM(); \
+    ERROR_RETURN(); \
 }
 
 #define IMPLEMENT_HASH_MAP_DELETE(TYPE, STRUCT_NAME, FUNCTION_NAME) \
