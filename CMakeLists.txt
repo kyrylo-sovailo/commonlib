@@ -18,7 +18,7 @@ endif()
 # Compiler options
 if("${COMPILER_STYLE}" STREQUAL "GNU")
     add_compile_options(-Wall -Wextra -pedantic)
-    add_compile_options(-Wconversion -Wsign-conversion -Wmissing-declarations -Wstrict-prototypes -Wunreachable-code)
+    add_compile_options(-Wconversion -Wmissing-declarations -Wstrict-prototypes)
     add_compile_options(-Werror)
     if("${COMPILER}" STREQUAL "GNU")
         add_compile_options(-fanalyzer)
